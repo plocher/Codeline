@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="204" height="42" viewBox="0 0 204 42" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif">
+  <title>Codeline — Prototypical Railroad Signaling &amp; Control</title>
+  <defs>
+    <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#243040"/>
+      <stop offset="100%" stop-color="#161e29"/>
+    </linearGradient>
+    <radialGradient id="greenGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#69f0ae"/>
+      <stop offset="55%" stop-color="#2ecc71"/>
+      <stop offset="100%" stop-color="#1b7a43"/>
+    </radialGradient>
+    <radialGradient id="amberGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffe082"/>
+      <stop offset="60%" stop-color="#f4b400"/>
+      <stop offset="100%" stop-color="#9e6c00"/>
+    </radialGradient>
+    <radialGradient id="redGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff8a80"/>
+      <stop offset="60%" stop-color="#e53935"/>
+      <stop offset="100%" stop-color="#8e1b18"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Dark CTC Enamel Nameplate (crisp on both light and dark themes) -->
+  <rect x="1" y="1" width="202" height="40" rx="8" fill="url(#plate)" stroke="#485a72" stroke-width="1.5"/>
+
+  <!-- Left Emblem: Track Turnout + Code Line Pulse into 3-Aspect Signal Head -->
+  <!-- Diverging turnout track (top-right siding) -->
+  <path d="M 10 27 L 19 27 L 29 15 L 35 15" fill="none" stroke="#8fa3bc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Mainline track -->
+  <line x1="10" y1="27" x2="35" y2="27" stroke="#e2e8f0" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- Code-line pulse node at switch points -->
+  <circle cx="19" cy="27" r="2.6" fill="#ffd166" stroke="#161e29" stroke-width="0.8"/>
+
+  <!-- 3-Aspect US&S Signal Head (G / Y / R top-to-bottom) -->
+  <rect x="38" y="5.5" width="13" height="31" rx="6.5" fill="#0d131b" stroke="#7d90a8" stroke-width="1.2"/>
+  <circle cx="44.5" cy="12" r="3.4" fill="url(#greenGlow)"/>
+  <circle cx="43.6" cy="11.1" r="0.9" fill="#ffffff" opacity="0.75"/>
+  <circle cx="44.5" cy="21" r="3.4" fill="url(#amberGlow)"/>
+  <circle cx="43.6" cy="20.1" r="0.8" fill="#ffffff" opacity="0.55"/>
+  <circle cx="44.5" cy="30" r="3.4" fill="url(#redGlow)"/>
+  <circle cx="43.6" cy="29.1" r="0.8" fill="#ffffff" opacity="0.55"/>
+
+  <!-- Subtle vertical divider -->
+  <line x1="59" y1="9" x2="59" y2="33" stroke="#3a4a5e" stroke-width="1"/>
+
+  <!-- Wordmark -->
+  <text x="68" y="22.5" font-size="17" font-weight="700" letter-spacing="2.2" fill="#ffffff">CODE<tspan fill="#ffd166">LINE</tspan></text>
+  <text x="68.5" y="33.5" font-size="7.2" font-weight="600" letter-spacing="1.75" fill="#9fb2c9">SIGNALING &amp; CONTROL</text>
+</svg>

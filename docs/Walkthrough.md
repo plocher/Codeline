@@ -1,6 +1,11 @@
-# Walkthroughs: Studio, Codeline, and Smart Appliances in Action
+[![Codeline](images/codeline-logo.svg)](../README.md)
+[Studio](Studio.md) · **[Codeline](Codeline.md)** · [Smart Appliances](SmartAppliances.md)  
+↳ **▸ Walkthrough**
+---
+---
+# Studio, Codeline, and Smart Appliances in Action
 
-These three worked examples trace concrete operating and maintenance scenarios across [**Studio**](Studio.md), [**Codeline**](Codeline.md), and [**Smart Appliances**](SmartAppliances.md)—showing how the **Code Line Interface** and **Smart Appliance Interface** behave on the wire.
+These three worked examples trace concrete operating and maintenance scenarios across [**Studio**](Studio.md), [**Codeline**](Codeline.md), and [**Smart Appliances**](SmartAppliances.md)—showing the [**MQTT Wire Binding**](bindings/MQTT.md) on the wire. When Vital Field Logic and local I²C appliances are co-located on a bungalow or CTC machine, the identical logical commands, states, and events execute directly in memory via the [**C++ Binding**](bindings/Cpp.md) (with optional MQTT mirroring for Studio).
 
 ---
 
@@ -99,5 +104,5 @@ When a maintainer replaces a servo linkage on `turnout/829`, end-stop percentage
 When [**Studio**](Studio.md) connects to a layout channel—or when a maintainer replaces a microcontroller under the benchwork—it builds an exact live inventory without retained `/config` zombies:
 
 1. **Subscribe to Unretained Events**: Studio subscribes to `{channel}/+/+/event`. Because Smart Appliances never publish retained `/config` topics, unplugged or renamed boards leave no stale metadata on the broker.
-2. **Broadcast `EXPORT CONFIG` with Jitter**: Studio publishes `EXPORT CONFIG` to `{channel}/maint`. Every live appliance waits a random `0–250 ms` delay and replies with `{channel}/{type}/{id}/event` `CONFIG <data>`. Studio parses each reply to learn every appliance's composed clusters, sub-components, NV settings, and `groups.members` lists.
+2. **Broadcast `EXPORT CONFIG` with Jitter**: Studio publishes `EXPORT CONFIG` to `{channel}/all`. Every live appliance waits a random `0–250 ms` delay and replies with `{channel}/{type}/{id}/event` `CONFIG <data>`. Studio parses each reply to learn every appliance's composed clusters, sub-components, NV settings, and `groups.members` lists.
 3. **Hot-Plug Arrival**: Powering on a replacement ESP32 hosting `signalmast/831WA` automatically emits a single boot-time `/event CONFIG <data>`, adding the node to Studio's live inventory without re-polling. If a board later drops offline, broker LWT notifies controllers to apply fail-safe substitution, and the next `EXPORT CONFIG` sweep reflects only live hardware.

@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="470" viewBox="0 0 1080 470" font-family="Helvetica, Arial, sans-serif">
+  <title>Codeline Flexible Deployment Topologies</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333333"/>
+    </marker>
+    <style>
+      .bg   { fill:#ffffff; }
+      .col  { fill:#f7f9fc; stroke:#c4d0e0; stroke-width:1.5; }
+      .host { fill:#e9eef5; stroke:#1f5fbf; stroke-width:2; stroke-dasharray:6 4; }
+      .node { fill:#eef3f8; stroke:#555555; stroke-width:1.8; }
+      .off  { fill:#ffffff; stroke:#333333; stroke-width:1.5; }
+      .safe { fill:#fde8e8; stroke:#b00000; stroke-width:2; }
+      .seam { fill:#fff3cc; stroke:#8a6d00; stroke-width:1.8; }
+      .h1   { fill:#333333; font-size:21px; font-weight:bold; }
+      .h2   { fill:#1f5fbf; font-size:15.5px; font-weight:bold; }
+      .tb   { fill:#333333; font-size:13.5px; font-weight:bold; }
+      .ts   { fill:#555555; font-size:12px; }
+      .lbl  { fill:#1f5fbf; font-size:12px; font-weight:bold; }
+      .st   { fill:#333333; font-size:12px; font-weight:bold; }
+      .ln   { stroke:#333333; stroke-width:1.8; fill:none; marker-start:url(#a); marker-end:url(#a); }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1080" height="470"/>
+  <text class="h1" x="28" y="34">Flexible Deployment — Where Vital Field Logic Runs</text>
+  <text class="ts" x="28" y="54">Both interfaces are transport-agnostic (local C++ or MQTT); appliances may run anywhere below the seam</text>
+
+  <!-- ==================== COLUMN A: CENTRALIZED ==================== -->
+  <rect class="col" x="28" y="72" width="328" height="374" rx="10"/>
+  <text class="h2" x="46" y="98">A. Centralized (Office Host)</text>
+  <text class="ts" x="46" y="116">All vital logic runs on the office computer</text>
+
+  <!-- Office Host -->
+  <rect class="host" x="44" y="132" width="296" height="230" rx="8"/>
+  <text class="lbl" x="56" y="150">Office Host</text>
+
+  <rect class="off" x="58" y="162" width="268" height="44" rx="6"/>
+  <text class="tb" x="192" y="189" text-anchor="middle">Dispatcher Office</text>
+
+  <line class="ln" x1="192" y1="208" x2="192" y2="235"/>
+  <rect class="seam" x="78" y="237" width="228" height="28" rx="4"/>
+  <text class="st" x="192" y="255" text-anchor="middle">Code Line Interface (local)</text>
+  <line class="ln" x1="192" y1="267" x2="192" y2="286"/>
+
+  <rect class="safe" x="58" y="288" width="268" height="62" rx="6"/>
+  <text class="tb" x="192" y="314" text-anchor="middle">Vital Field Logic</text>
+  <text class="ts" x="192" y="334" text-anchor="middle">All Control Points</text>
+
+  <line class="ln" x1="192" y1="352" x2="192" y2="388"/>
+
+  <!-- Smart Appliance Interface floor -->
+  <polygon class="seam" points="56,390 328,390 338,411 328,432 56,432 46,411"/>
+  <text class="st" x="192" y="407" text-anchor="middle">SMART APPLIANCE INTERFACE</text>
+  <text class="ts" x="192" y="424" text-anchor="middle">(local C++ or MQTT)</text>
+
+  <!-- ==================== COLUMN B: DISTRIBUTED ==================== -->
+  <rect class="col" x="376" y="72" width="328" height="374" rx="10"/>
+  <text class="h2" x="394" y="98">B. Distributed (Bungalows)</text>
+  <text class="ts" x="394" y="116">Each control point runs autonomously in the field</text>
+
+  <!-- Office Host (Optional) -->
+  <rect class="host" x="392" y="132" width="296" height="86" rx="8"/>
+  <text class="lbl" x="404" y="150">Office Host (Optional)</text>
+  <rect class="off" x="406" y="162" width="268" height="44" rx="6"/>
+  <text class="tb" x="540" y="189" text-anchor="middle">Dispatcher Office</text>
+
+  <line class="ln" x1="540" y1="208" x2="540" y2="232"/>
+  <polygon class="seam" points="406,234 674,234 684,251 674,268 406,268 396,251"/>
+  <text class="st" x="540" y="255" text-anchor="middle">Code Line Interface (MQTT)</text>
+
+  <line class="ln" x1="438" y1="270" x2="438" y2="286"/>
+  <line class="ln" x1="540" y1="270" x2="540" y2="286"/>
+  <line class="ln" x1="642" y1="270" x2="642" y2="286"/>
+
+  <!-- 3 Bungalows -->
+  <rect class="node" x="392" y="288" width="92" height="74" rx="6"/>
+  <text class="ts" x="438" y="305" text-anchor="middle" font-weight="bold">Bungalow</text>
+  <rect class="safe" x="400" y="312" width="76" height="42" rx="4"/>
+  <text class="ts" x="438" y="330" text-anchor="middle" font-weight="bold">Vital Logic</text>
+  <text class="ts" x="438" y="345" text-anchor="middle">CP 1</text>
+
+  <rect class="node" x="494" y="288" width="92" height="74" rx="6"/>
+  <text class="ts" x="540" y="305" text-anchor="middle" font-weight="bold">Bungalow</text>
+  <rect class="safe" x="502" y="312" width="76" height="42" rx="4"/>
+  <text class="ts" x="540" y="330" text-anchor="middle" font-weight="bold">Vital Logic</text>
+  <text class="ts" x="540" y="345" text-anchor="middle">CP 2</text>
+
+  <rect class="node" x="596" y="288" width="92" height="74" rx="6"/>
+  <text class="ts" x="642" y="305" text-anchor="middle" font-weight="bold">Bungalow</text>
+  <rect class="safe" x="604" y="312" width="76" height="42" rx="4"/>
+  <text class="ts" x="642" y="330" text-anchor="middle" font-weight="bold">Vital Logic</text>
+  <text class="ts" x="642" y="345" text-anchor="middle">CP 3</text>
+
+  <line class="ln" x1="438" y1="364" x2="438" y2="388"/>
+  <line class="ln" x1="540" y1="364" x2="540" y2="388"/>
+  <line class="ln" x1="642" y1="364" x2="642" y2="388"/>
+
+  <!-- Smart Appliance Interface floor -->
+  <polygon class="seam" points="404,390 676,390 686,411 676,432 404,432 394,411"/>
+  <text class="st" x="540" y="407" text-anchor="middle">SMART APPLIANCE INTERFACE</text>
+  <text class="ts" x="540" y="424" text-anchor="middle">(local C++ or MQTT)</text>
+
+  <!-- ==================== COLUMN C: HYBRID ==================== -->
+  <rect class="col" x="724" y="72" width="328" height="374" rx="10"/>
+  <text class="h2" x="742" y="98">C. Hybrid (Office + Bungalows)</text>
+  <text class="ts" x="742" y="116">Mix office-hosted and field-hosted stations freely</text>
+
+  <!-- L-shaped Office Host enclosing Dispatcher Office + local CPs -->
+  <path class="host" d="M 748,132 L 1028,132 Q 1036,132 1036,140 L 1036,210 Q 1036,218 1028,218 L 892,218 Q 884,218 884,226 L 884,354 Q 884,362 876,362 L 748,362 Q 740,362 740,354 L 740,140 Q 740,132 748,132 Z"/>
+  <text class="lbl" x="752" y="150">Office Host</text>
+
+  <rect class="off" x="754" y="162" width="268" height="44" rx="6"/>
+  <text class="tb" x="888" y="189" text-anchor="middle">Dispatcher Office</text>
+
+  <!-- Left branch (local in Office Host) -->
+  <line class="ln" x1="812" y1="208" x2="812" y2="235"/>
+  <rect class="seam" x="754" y="237" width="116" height="28" rx="4"/>
+  <text class="st" x="812" y="255" text-anchor="middle">Code Line (local)</text>
+  <line class="ln" x1="812" y1="267" x2="812" y2="286"/>
+
+  <rect class="safe" x="754" y="288" width="116" height="62" rx="6"/>
+  <text class="tb" x="812" y="314" text-anchor="middle">Vital Logic</text>
+  <text class="ts" x="812" y="334" text-anchor="middle">CP 1, CP 2</text>
+
+  <!-- Right branch (remote Bungalow over MQTT) -->
+  <line class="ln" x1="966" y1="208" x2="966" y2="233"/>
+  <polygon class="seam" points="904,235 1028,235 1036,251 1028,267 904,267 896,251"/>
+  <text class="st" x="966" y="255" text-anchor="middle">Code Line (MQTT)</text>
+  <line class="ln" x1="966" y1="269" x2="966" y2="286"/>
+
+  <rect class="node" x="896" y="288" width="140" height="74" rx="6"/>
+  <text class="ts" x="966" y="305" text-anchor="middle" font-weight="bold">Bungalow</text>
+  <rect class="safe" x="906" y="312" width="120" height="42" rx="4"/>
+  <text class="ts" x="966" y="330" text-anchor="middle" font-weight="bold">Vital Logic</text>
+  <text class="ts" x="966" y="345" text-anchor="middle">CP 3</text>
+
+  <line class="ln" x1="812" y1="352" x2="812" y2="388"/>
+  <line class="ln" x1="966" y1="364" x2="966" y2="388"/>
+
+  <!-- Smart Appliance Interface floor -->
+  <polygon class="seam" points="752,390 1024,390 1034,411 1024,432 752,432 742,411"/>
+  <text class="st" x="888" y="407" text-anchor="middle">SMART APPLIANCE INTERFACE</text>
+  <text class="ts" x="888" y="424" text-anchor="middle">(local C++ or MQTT)</text>
+</svg>

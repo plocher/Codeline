@@ -22,18 +22,18 @@
 
   <rect class="bg" x="0" y="0" width="1120" height="460"/>
 
-  <text class="h1" x="30" y="36">Implementing Smart Appliances: Simulated, Direct Hardware, and Proxy Buses</text>
-  <text class="ts" x="30" y="58">Above the Smart Appliance Interface, every appliance looks identical. Below it, three implementations fulfill the contract.</text>
+  <text class="h1" x="30" y="36">Implementing Smart Appliances: Shared Reference Core &amp; Three Drivers</text>
+  <text class="ts" x="30" y="58">Above the Smart Appliance Interface, every appliance speaks the same typed async API; below it, one Reference Core plugs into three drivers.</text>
 
   <!-- SMART APPLIANCE INTERFACE Top Banner -->
   <polygon class="seam" points="46,76 1074,76 1090,104 1074,132 46,132 30,104"/>
-  <text class="gt" x="560" y="100" text-anchor="middle">SMART APPLIANCE INTERFACE — Universal Hardware-Agnostic Floor</text>
-  <text class="ts" x="560" y="120" text-anchor="middle">Signal Mast  ·  Switch Installation  ·  Track Detector  ·  Electric Lock  ·  Train Order Signal  ·  Field Fascia Control</text>
+  <text class="gt" x="560" y="100" text-anchor="middle">SMART APPLIANCE INTERFACE — Typed Async Logical API (local C++ / MQTT)</text>
+  <text class="ts" x="560" y="120" text-anchor="middle">TURNOUT  ·  SENSOR  ·  SIGNALMAST  ·  TRAINORDER  ·  CROSSING  ·  CONTROL  ·  LAMP</text>
 
   <!-- Implementation 1 -->
   <rect class="grn" x="30" y="156" width="332" height="280" rx="8"/>
   <text class="gt" x="196" y="182" text-anchor="middle">1. Simulated Appliances</text>
-  <text class="ts" x="196" y="202" text-anchor="middle">In-Memory Virtual Railroad</text>
+  <text class="ts" x="196" y="202" text-anchor="middle">SimulatedDriver &amp; Functional Test Fixture</text>
   <line class="ln" x1="196" y1="132" x2="196" y2="154"/>
 
   <rect class="box" x="48" y="218" width="296" height="96" rx="6"/>
@@ -51,7 +51,7 @@
   <!-- Implementation 2 -->
   <rect class="cat" x="394" y="156" width="332" height="280" rx="8"/>
   <text class="gt" x="560" y="182" text-anchor="middle">2. Direct Smart Appliances</text>
-  <text class="ts" x="560" y="202" text-anchor="middle">Device Profiles + Local Pin/Pixel Routing</text>
+  <text class="ts" x="560" y="202" text-anchor="middle">DirectHardwareDriver + Pin/Pixel Binding</text>
   <line class="ln" x1="560" y1="132" x2="560" y2="154"/>
 
   <rect class="box" x="412" y="218" width="296" height="96" rx="6"/>
@@ -69,7 +69,7 @@
   <!-- Implementation 3 -->
   <rect class="grp" x="758" y="156" width="332" height="280" rx="8"/>
   <text class="gt" x="924" y="182" text-anchor="middle">3. Proxy Appliances</text>
-  <text class="ts" x="924" y="202" text-anchor="middle">Bridges External Layout Buses (C/MRI, LocoNet, LCC)</text>
+  <text class="ts" x="924" y="202" text-anchor="middle">ProxyBusDriver (C/MRI, LocoNet, LCC)</text>
   <line class="ln" x1="924" y1="132" x2="924" y2="154"/>
 
   <rect class="box" x="776" y="218" width="296" height="96" rx="6"/>

@@ -1,3 +1,10 @@
+[![Codeline](../images/codeline-logo.svg)](../../README.md)
+
+[Studio](../Studio.md) · **[Codeline](../Codeline.md)** · [Smart Appliances](../SmartAppliances.md)  
+↳ [Walkthrough](../Walkthrough.md) · **▸ Research: CATS**
+
+---
+
 # CATS (Computer / Crandic Automated Traffic System) — Architectural & Domain Research
 
 **Author:** Rodney Black (`cats4ctc.wikidot.com`, `bitbucket.org/Kb0oys`)  

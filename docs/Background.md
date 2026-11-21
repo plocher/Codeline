@@ -1,3 +1,8 @@
+[![Codeline](images/codeline-logo.svg)](../README.md)
+**[Studio](Studio.md)** · [Codeline](Codeline.md) · [Smart Appliances](SmartAppliances.md)  
+↳ **▸ SPCoast Example**
+---
+---
 # Historical Context, Prototype Conventions, and Nomenclature
 
 This companion reference provides the historical railroad background, era-specific signaling evolution, and prototype **US&S / AREMA** nomenclature behind [**Codeline**](Codeline.md) and the [**Walkthroughs**](Walkthrough.md).

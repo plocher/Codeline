@@ -1,3 +1,8 @@
+[![Codeline](images/codeline-logo.svg)](../README.md)
+[Studio](Studio.md) · **▸ Codeline** · [Smart Appliances](SmartAppliances.md)  
+↳ [Walkthrough](Walkthrough.md)
+---
+
 # Codeline: Prototypical Railroad Logic and Architecture
 
 **Codeline** is the operational signaling and control runtime designed in [**Studio**](Studio.md) and backed by [**Smart Appliances**](SmartAppliances.md). Grounded in **AREMA Communications & Signals** practice and historical railroad rulebooks (see [**Background**](Background.md)), Codeline separates *how the railroad operates* from *how the benchwork is wired*.
@@ -30,24 +35,28 @@ On the prototype, traffic density determines where railroads invest in signaling
 
 Codeline separates the railroad into three layers connected by two crisp interfaces:
 
-1. **The Dispatcher Office** — US&S CTC machine, software panel, local fascia plates, or automated test runner built on [`Appliance:CONTROL`](appliances/README.Appliances.md#appliancecontrol) and [`Appliance:LAMP`](appliances/README.Appliances.md#appliancelamp) operator surfaces.
+1. **The Dispatcher Office** — US&S CTC machine, software panel, local fascia plates, or automated test runner built on [`Appliance:CONTROL`](appliances/README.Appliances.md#appliancecontrol) and [`Appliance:LAMP`](appliances/README.Appliances.md#appliancelamp) operator surfaces. A physical CTC machine uses **both** interfaces: the **Code Line Interface** toward Vital Field Logic, and the **Smart Appliance Interface** (bound locally in-process—e.g., C++—when its switch/lamp I²C boards sit inside the machine, or over MQTT when decoupled) for its physical levers and lamps.
    - Connected via the **Code Line Interface** *(US&S/AAR positive-control demands and office indications)* to
 2. **The Vital Field Logic** — Hardware-agnostic AREMA locking, route evaluation, and block solver.
-   - Sitting above the **Smart Appliance Interface** *(plain-English functional MQTT commands and physical feedback)* over
-3. **Smart Appliances** — Simulated, Direct Microcontroller, or Proxy hardware endpoints (see [**Smart Appliances**](SmartAppliances.md)).
+   - Sitting above the **Smart Appliance Interface** *(typed async logical commands, physical state, and events — bound locally in-process or over MQTT)* over
+3. **Smart Appliances** — Simulated, Direct Microcontroller, or Proxy hardware endpoints built on the Reference Appliance Core + Driver Port pattern (see [**Smart Appliances**](SmartAppliances.md)).
 
-![Codeline Architecture — Hardware-Agnostic Logic Over Smart Appliances](images/02-four-layers-three-seams.svg)
+![Codeline Architecture — Hardware-Agnostic Logic Over the Smart Appliance Interface](images/02-architecture-layers.svg)
 
-Above the **Smart Appliance Interface**, Codeline is 100% hardware-agnostic: the Dispatcher Office and Vital Field Logic never touch a pin number, an I²C address, a C/MRI bit offset, or an LED color.
+Above the **Smart Appliance Interface**, Codeline is 100% hardware-agnostic: the Dispatcher Office and Vital Field Logic never touch a pin number, an I²C address, a C/MRI bit offset, or an LED color. Both interfaces follow the same **Logical Contract + Pluggable Language/Transport Binding** pattern (starting with the [**C++ In-Process Binding**](bindings/Cpp.md) and [**MQTT Binding**](bindings/MQTT.md), while keeping the contract open to runtimes such as MicroPython).
+
+Below the **Smart Appliance Interface**, every endpoint exposes the same typed async contract whether it runs purely in software (`Simulated`), directly on local board I/O (`Direct`), or bridged onto a legacy layout bus (`Proxy`):
+
+![Smart Appliances Layer — Below the Smart Appliance Interface](images/02b-smart-appliances-layer.svg)
 
 ---
 
 ## 3. The Code Line Interface vs. The Smart Appliance Interface
 
-Keeping the two interfaces distinct preserves prototype fidelity at the office without leaking relay jargon into generic hardware:
+Keeping the two interfaces distinct preserves prototype fidelity at the office without leaking relay jargon into generic hardware—while reusing the exact same transport/encoding separation on both seams:
 
 - **Code Line Interface (Office ↔ Vital Field Logic)**: Carries non-vital, atomic office control packets (`827NWS (827RWS) 829NWS (829RWS) 828WGS 830WGS`) from free-moving CTC levers down to the field station, and verified office indications (`827NWK (827RWK) 828WGK 830WGK 830TEK`) back up to light panel jewels. The office console never knows how many masts stand at a control point, how many heads a mast carries, or how route equations are wired.
-- **Smart Appliance Interface (Vital Field Logic ↔ Hardware)**: Translates solved vital outputs into plain, hardware-neutral commands (`NORMAL (REVERSE)` on `/turnout/829/cmd`, `APPROACH` on `/signalmast/830WAB/cmd`, `LAMP1 (LAMP2)` on `/control/Corporal/cmd`) and consumes closed-loop physical `/state` confirmations before advancing any vital sequence.
+- **Smart Appliance Interface (Vital Field Logic / Office Panels ↔ Hardware)**: Translates solved vital outputs and panel lamp frames into typed, hardware-neutral commands (`setAlignment(NORMAL)`, `setIndication(APPROACH)`, `setLamps(...)` — encoded on MQTT as `NORMAL (REVERSE)`, `APPROACH`, `LAMP1 (LAMP2)`) and consumes closed-loop physical state confirmations before advancing any vital sequence.
 
 ---
 
@@ -71,8 +80,10 @@ See [**Walkthrough: Tracing a Move at CP Corporal**](Walkthrough.md#1-tracing-a-
 
 ## 5. Flexible Deployment Topologies
 
-Because both interfaces are clean network boundaries, you choose **where** the Vital Field Logic executes—and can mix topologies on the same layout:
+Because both the Code Line Interface and the Smart Appliance Interface are transport-agnostic contracts with pluggable local in-process (e.g., [**C++**](bindings/Cpp.md)) and networked ([**MQTT**](bindings/MQTT.md)) bindings, you choose **where** Vital Field Logic executes—independently of what Smart Appliances (Simulated, Direct, or Proxy) sit below the seam or whether they are co-located in-process or networked over MQTT:
 
-- **All-in-One in the Office**: Run both the Dispatcher Office and Vital Field Logic on the office computer, treating every microcontroller or `C/MRI`/`LocoNet`/`LCC` gateway under the layout as a stateless Smart Appliance. Updating routes or rulebooks never requires reflashing field hardware.
-- **Distributed in the Bungalows**: Deploy each interlocking's Vital Field Logic onto an ESP32 under the layout alongside its local I/O appliance adapters, allowing signals, grade crossings, and local fascia locks to operate even when the office computer is off.
-- **Hybrid Mix**: Run unfinished staging in simulation, existing benchwork on the office computer via Proxy Appliances, and new control points on standalone bungalow ESP32s simultaneously.
+![Flexible Deployment Topologies — Office, Bungalows, and Hybrid Migration](images/06-deployment-topologies.svg)
+
+- **Centralized (Office Host)**: Run both the Dispatcher Office and Vital Field Logic for all control points on the office computer, communicating with Smart Appliances in-process (for local Simulated or Proxy appliances) or over MQTT. Updating routes or rulebooks never requires reflashing field hardware.
+- **Distributed (Bungalows)**: Deploy each control point's Vital Field Logic onto its own field bungalow node (such as an ESP32 or Raspberry Pi under the layout), allowing signals, grade crossings, and local locks to keep running even when the office computer is off. When local `cpNode-IOX` I²C cards are attached to the bungalow, its Direct Smart Appliances bind directly in-process (e.g., via C++, immune to Wi-Fi/broker outages) with optional MQTT mirroring for Studio discovery and calibration.
+- **Hybrid (Office + Bungalows)**: Run selected stations on the office host while others run autonomously in field bungalows—all sharing the same Code Line and Smart Appliance interfaces. Below the Smart Appliance Interface, any station can freely bind to Simulated, Direct, or legacy Proxy appliances (see [**Smart Appliances**](SmartAppliances.md)).

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="502" viewBox="0 0 820 502" font-family="Helvetica, Arial, sans-serif">
+  <title>Codeline Architecture (Above the Smart Appliance Interface)</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333333"/>
+    </marker>
+    <style>
+      .bg   { fill:#ffffff; }
+      .grp  { fill:#e9eef5; stroke:#555555; stroke-width:2; }
+      .gt   { fill:#333333; font-size:15.5px; font-weight:bold; }
+      .gsub { fill:#555555; font-size:13px; font-weight:normal; }
+      .safe { fill:#fde8e8; stroke:#b00000; stroke-width:2.2; }
+      .smart{ fill:#eef6ec; stroke:#4f7d45; stroke-width:2; }
+      .seam { fill:#fff3cc; stroke:#8a6d00; stroke-width:2; }
+      .pill { fill:#ffffff; stroke:#4f7d45; stroke-width:1.6; }
+      .tb   { fill:#333333; font-size:14px; font-weight:bold; }
+      .ts   { fill:#555555; font-size:12px; }
+      .st   { fill:#333333; font-size:14.5px; font-weight:bold; }
+      .ss   { fill:#555555; font-size:12px; }
+      .ln   { stroke:#333333; stroke-width:2; fill:none; marker-start:url(#a); marker-end:url(#a); }
+      .h1   { fill:#333333; font-size:21px; font-weight:bold; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="820" height="502"/>
+
+  <text class="h1" x="30" y="34">Codeline Architecture — Above the Smart Appliance Interface</text>
+  <text class="ts" x="30" y="54">Office and Vital Field Logic are 100% hardware-agnostic; both interfaces support local C++ or MQTT bindings</text>
+
+  <!-- 1. DISPATCHER OFFICE -->
+  <rect class="grp" x="30" y="70" width="760" height="118" rx="10"/>
+  <text class="gt" x="48" y="95">1. DISPATCHER OFFICE<tspan class="gsub"> — Non-Vital Operator Intent</tspan></text>
+
+  <rect class="smart" x="48" y="108" width="228" height="62" rx="6"/>
+  <text class="tb" x="162" y="135" text-anchor="middle">Screen Panel</text>
+  <text class="ts" x="162" y="154" text-anchor="middle">Studio / Codeline UI</text>
+
+  <rect class="smart" x="296" y="108" width="228" height="62" rx="6"/>
+  <text class="tb" x="410" y="135" text-anchor="middle">Automated Dispatcher</text>
+  <text class="ts" x="410" y="154" text-anchor="middle">Tests &amp; session replay</text>
+
+  <rect class="smart" x="544" y="108" width="228" height="62" rx="6"/>
+  <text class="tb" x="658" y="135" text-anchor="middle">Physical CTC Machine</text>
+  <text class="ts" x="658" y="154" text-anchor="middle">Levers, buttons &amp; jewels</text>
+
+  <!-- CODE LINE INTERFACE (Office <-> Vital Field Logic) -->
+  <polygon class="seam" points="48,206 542,206 558,231 542,256 48,256 32,231"/>
+  <text class="st" x="295" y="227" text-anchor="middle">CODE LINE INTERFACE</text>
+  <text class="ss" x="295" y="246" text-anchor="middle">Office ↔ Field  •  Positive-Control Demands &amp; Indications</text>
+  <line class="ln" x1="295" y1="190" x2="295" y2="204"/>
+
+  <!-- 2. VITAL FIELD LOGIC -->
+  <rect class="grp" x="30" y="274" width="530" height="118" rx="10"/>
+  <text class="gt" x="46" y="299">2. VITAL FIELD LOGIC<tspan class="gsub"> — Hardware-Agnostic AREMA Solver</tspan></text>
+  <line class="ln" x1="295" y1="258" x2="295" y2="272"/>
+
+  <rect class="safe" x="46" y="312" width="158" height="64" rx="6"/>
+  <text class="tb" x="125" y="339" text-anchor="middle">Vital Locking</text>
+  <text class="ts" x="125" y="358" text-anchor="middle">Detector, route &amp; time</text>
+
+  <rect class="safe" x="216" y="312" width="158" height="64" rx="6"/>
+  <text class="tb" x="295" y="339" text-anchor="middle">Route &amp; Mast</text>
+  <text class="ts" x="295" y="358" text-anchor="middle">Declarative aspects</text>
+
+  <rect class="safe" x="386" y="312" width="158" height="64" rx="6"/>
+  <text class="tb" x="465" y="339" text-anchor="middle">Block &amp; Traffic</text>
+  <text class="ts" x="465" y="358" text-anchor="middle">HOME / DISTANT, APB</text>
+
+  <!-- Wayside link down to Smart Appliance Interface -->
+  <line class="ln" x1="295" y1="394" x2="295" y2="424"/>
+  <text class="ts" x="307" y="413">Wayside plant</text>
+
+  <!-- Direct Physical CTC Machine link down to Smart Appliance Interface -->
+  <line class="ln" x1="658" y1="172" x2="658" y2="424"/>
+  <rect class="pill" x="582" y="284" width="152" height="44" rx="6"/>
+  <text class="tb" x="658" y="303" text-anchor="middle" font-size="12.5px">CONTROL &amp; LAMP</text>
+  <text class="ts" x="658" y="320" text-anchor="middle">panel surfaces</text>
+
+  <!-- SMART APPLIANCE INTERFACE FLOOR -->
+  <polygon class="seam" points="48,426 772,426 788,452 772,478 48,478 32,452"/>
+  <text class="st" x="410" y="447" text-anchor="middle">SMART APPLIANCE INTERFACE — Typed Async Logical API (local C++ or MQTT)</text>
+  <text class="ss" x="410" y="467" text-anchor="middle">TURNOUT  •  SENSOR  •  SIGNALMAST  •  TRAINORDER  •  CROSSING  •  CONTROL  •  LAMP</text>
+</svg>
