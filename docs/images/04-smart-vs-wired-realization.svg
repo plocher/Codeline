@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="460" viewBox="0 0 1120 460" font-family="Helvetica, Arial, sans-serif">
+  <title>Implementing Smart Appliances: Simulated, Direct Hardware, and Proxy Appliances</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333333"/>
+    </marker>
+    <style>
+      .bg   { fill:#ffffff; }
+      .grp  { fill:#e9eef5; stroke:#555555; stroke-width:2; }
+      .grn  { fill:#eef6ec; stroke:#4f7d45; stroke-width:2; }
+      .seam { fill:#fff3cc; stroke:#8a6d00; stroke-width:2; }
+      .cat  { fill:#dde6f0; stroke:#1f5fbf; stroke-width:1.5; }
+      .box  { fill:#ffffff; stroke:#333333; stroke-width:1.5; }
+      .h1   { fill:#333333; font-size:21px; font-weight:bold; }
+      .gt   { fill:#333333; font-size:15px; font-weight:bold; }
+      .tb   { fill:#333333; font-size:13.5px; font-weight:bold; }
+      .t    { fill:#333333; font-size:13px; }
+      .ts   { fill:#555555; font-size:12.5px; }
+      .ln   { stroke:#333333; stroke-width:2; fill:none; marker-end:url(#a); }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1120" height="460"/>
+
+  <text class="h1" x="30" y="36">Implementing Smart Appliances: Simulated, Direct Hardware, and Proxy Buses</text>
+  <text class="ts" x="30" y="58">Above the Smart Appliance Interface, every appliance looks identical. Below it, three implementations fulfill the contract.</text>
+
+  <!-- SMART APPLIANCE INTERFACE Top Banner -->
+  <polygon class="seam" points="46,76 1074,76 1090,104 1074,132 46,132 30,104"/>
+  <text class="gt" x="560" y="100" text-anchor="middle">SMART APPLIANCE INTERFACE — Universal Hardware-Agnostic Floor</text>
+  <text class="ts" x="560" y="120" text-anchor="middle">Signal Mast  ·  Switch Installation  ·  Track Detector  ·  Electric Lock  ·  Train Order Signal  ·  Field Fascia Control</text>
+
+  <!-- Implementation 1 -->
+  <rect class="grn" x="30" y="156" width="332" height="280" rx="8"/>
+  <text class="gt" x="196" y="182" text-anchor="middle">1. Simulated Appliances</text>
+  <text class="ts" x="196" y="202" text-anchor="middle">In-Memory Virtual Railroad</text>
+  <line class="ln" x1="196" y1="132" x2="196" y2="154"/>
+
+  <rect class="box" x="48" y="218" width="296" height="96" rx="6"/>
+  <text class="tb" x="196" y="242" text-anchor="middle">Built-In Codeline Simulator</text>
+  <text class="ts" x="196" y="264" text-anchor="middle">• Virtual signal masts &amp; aspect display</text>
+  <text class="ts" x="196" y="284" text-anchor="middle">• Simulated switch transit &amp; locks</text>
+  <text class="ts" x="196" y="304" text-anchor="middle">• Interactive occupancy &amp; train runs</text>
+
+  <rect class="box" x="48" y="328" width="296" height="90" rx="6"/>
+  <text class="tb" x="196" y="352" text-anchor="middle">Role in Layout Lifecycle</text>
+  <text class="ts" x="196" y="374" text-anchor="middle">Lets you dispatch and test every</text>
+  <text class="ts" x="196" y="392" text-anchor="middle">control point on day one before</text>
+  <text class="ts" x="196" y="410" text-anchor="middle">any physical hardware is wired.</text>
+
+  <!-- Implementation 2 -->
+  <rect class="cat" x="394" y="156" width="332" height="280" rx="8"/>
+  <text class="gt" x="560" y="182" text-anchor="middle">2. Direct Smart Appliances</text>
+  <text class="ts" x="560" y="202" text-anchor="middle">Device Profiles + Local Pin/Pixel Routing</text>
+  <line class="ln" x1="560" y1="132" x2="560" y2="154"/>
+
+  <rect class="box" x="412" y="218" width="296" height="96" rx="6"/>
+  <text class="tb" x="560" y="242" text-anchor="middle">On-Board I/O (cpNode-IOX, Pixels, Wi-Fi)</text>
+  <text class="ts" x="560" y="264" text-anchor="middle">• Maps states to RGB, R/Y/G, Pixel, Servo</text>
+  <text class="ts" x="560" y="284" text-anchor="middle">• Emulates missing N/R point contacts</text>
+  <text class="ts" x="560" y="304" text-anchor="middle">• Default pin bundles OR manual rat's-nest</text>
+
+  <rect class="box" x="412" y="328" width="296" height="90" rx="6"/>
+  <text class="tb" x="560" y="352" text-anchor="middle">Inside the Appliance Abstraction</text>
+  <text class="ts" x="560" y="374" text-anchor="middle">Whether a standalone Wi-Fi mast or</text>
+  <text class="ts" x="560" y="392" text-anchor="middle">an ESP32 with I2C expanders, pin</text>
+  <text class="ts" x="560" y="410" text-anchor="middle">routing &amp; Active-Low stay inside.</text>
+
+  <!-- Implementation 3 -->
+  <rect class="grp" x="758" y="156" width="332" height="280" rx="8"/>
+  <text class="gt" x="924" y="182" text-anchor="middle">3. Proxy Appliances</text>
+  <text class="ts" x="924" y="202" text-anchor="middle">Bridges External Layout Buses (C/MRI, LocoNet, LCC)</text>
+  <line class="ln" x1="924" y1="132" x2="924" y2="154"/>
+
+  <rect class="box" x="776" y="218" width="296" height="96" rx="6"/>
+  <text class="tb" x="924" y="242" text-anchor="middle">External Bus Hosts &amp; Profile Import</text>
+  <text class="ts" x="924" y="264" text-anchor="middle">• Imports JMRI/CATS &amp; C/MRI configs</text>
+  <text class="ts" x="924" y="284" text-anchor="middle">• Translates to C/MRI IB/OB, LocoNet, LCC</text>
+  <text class="ts" x="924" y="304" text-anchor="middle">• Offloads fades/servos to smart C/MRI nodes</text>
+
+  <rect class="seam" x="776" y="328" width="296" height="90" rx="6"/>
+  <text class="tb" x="924" y="352" text-anchor="middle">Why Proxy Appliances Matter</text>
+  <text class="ts" x="924" y="374" text-anchor="middle">Wraps existing C/MRI, LocoNet &amp; LCC</text>
+  <text class="ts" x="924" y="392" text-anchor="middle">hardware so legacy buses look like</text>
+  <text class="ts" x="924" y="410" text-anchor="middle">native Smart Appliances to Codeline.</text>
+</svg>

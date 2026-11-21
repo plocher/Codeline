@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="450" viewBox="0 0 1120 450" font-family="Helvetica, Arial, sans-serif">
+  <title>Signal Resolution Pipeline: From Operator Intent to Physical Display</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333333"/>
+    </marker>
+    <style>
+      .bg   { fill:#ffffff; }
+      .grp  { fill:#e9eef5; stroke:#555555; stroke-width:2; }
+      .safe { fill:#fde8e8; stroke:#b00000; stroke-width:2; }
+      .seam { fill:#fff3cc; stroke:#8a6d00; stroke-width:2; }
+      .grn  { fill:#eef6ec; stroke:#4f7d45; stroke-width:2; }
+      .box  { fill:#ffffff; stroke:#333333; stroke-width:1.5; }
+      .h1   { fill:#333333; font-size:21px; font-weight:bold; }
+      .gt   { fill:#333333; font-size:15px; font-weight:bold; }
+      .tb   { fill:#333333; font-size:13.5px; font-weight:bold; }
+      .t    { fill:#333333; font-size:13px; }
+      .ts   { fill:#555555; font-size:12.5px; }
+      .ln   { stroke:#333333; stroke-width:2; fill:none; marker-end:url(#a); }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1120" height="450"/>
+
+  <text class="h1" x="30" y="36">Signal Resolution Across the Stack: Intent to Indication to Aspect</text>
+  <text class="ts" x="30" y="58">How each stage narrows a direction request into a physical display without leaking hardware details upward</text>
+
+  <!-- Stage 1 -->
+  <rect class="grp" x="30" y="78" width="230" height="276" rx="8"/>
+  <text class="gt" x="145" y="104" text-anchor="middle">1. Dispatcher Office</text>
+  <text class="ts" x="145" y="124" text-anchor="middle">States Direction Intent Only</text>
+
+  <rect class="box" x="46" y="140" width="198" height="90" rx="6"/>
+  <text class="tb" x="145" y="164" text-anchor="middle">Operator Signal Demand</text>
+  <text class="ts" x="145" y="186" text-anchor="middle">Requests direction for a</text>
+  <text class="ts" x="145" y="204" text-anchor="middle">signal group (LEFT / RIGHT)</text>
+
+  <rect class="seam" x="46" y="244" width="198" height="92" rx="6"/>
+  <text class="tb" x="145" y="268" text-anchor="middle">Across Codeline Interface:</text>
+  <text class="ts" x="145" y="290" text-anchor="middle">No mast names, no head</text>
+  <text class="ts" x="145" y="308" text-anchor="middle">counts, and no aspect</text>
+  <text class="ts" x="145" y="326" text-anchor="middle">details cross the line.</text>
+
+  <line class="ln" x1="260" y1="216" x2="286" y2="216"/>
+
+  <!-- Stage 2 -->
+  <rect class="safe" x="288" y="78" width="300" height="276" rx="8"/>
+  <text class="gt" x="438" y="104" text-anchor="middle">2. Vital Field Logic</text>
+  <text class="ts" x="438" y="124" text-anchor="middle">Era/Rulebook Set &amp; Route Solver</text>
+
+  <rect class="box" x="304" y="140" width="268" height="104" rx="6"/>
+  <text class="tb" x="438" y="162" text-anchor="middle">Valid Indications &amp; Route Math</text>
+  <text class="ts" x="438" y="182" text-anchor="middle">• Railroad + Era + Mast Type + Heads</text>
+  <text class="ts" x="438" y="200" text-anchor="middle">define the mast's valid indication set</text>
+  <text class="ts" x="438" y="218" text-anchor="middle">• Route R = least permissive condition;</text>
+  <text class="ts" x="438" y="236" text-anchor="middle">Mast M = active lined route</text>
+
+  <rect class="box" x="304" y="254" width="268" height="82" rx="6"/>
+  <text class="tb" x="438" y="276" text-anchor="middle" fill="#b00000">Vital Block &amp; Distant Relay</text>
+  <text class="ts" x="438" y="296" text-anchor="middle">Equations only produce indications</text>
+  <text class="ts" x="438" y="314" text-anchor="middle">the mast can display; feeds D in rear</text>
+
+  <line class="ln" x1="588" y1="216" x2="614" y2="216"/>
+
+  <!-- Stage 3 -->
+  <rect class="grn" x="616" y="78" width="224" height="276" rx="8"/>
+  <text class="gt" x="728" y="104" text-anchor="middle">3. Trackside Appliances</text>
+  <text class="ts" x="728" y="124" text-anchor="middle">Smart Mast or Head Split</text>
+
+  <rect class="seam" x="632" y="140" width="192" height="72" rx="6"/>
+  <text class="tb" x="728" y="162" text-anchor="middle">Smart / Virtual Mast</text>
+  <text class="ts" x="728" y="182" text-anchor="middle">Consumes Mast Indication</text>
+  <text class="ts" x="728" y="198" text-anchor="middle">directly at Smart Interface</text>
+
+  <rect class="box" x="632" y="226" width="192" height="110" rx="6"/>
+  <text class="tb" x="728" y="248" text-anchor="middle">Mast-to-Head Table</text>
+  <text class="ts" x="728" y="270" text-anchor="middle">Splits (Mast Indication,</text>
+  <text class="ts" x="728" y="288" text-anchor="middle">Head Count) into per-head</text>
+  <text class="ts" x="728" y="306" text-anchor="middle">words (Head A, Head B)</text>
+  <text class="ts" x="728" y="324" text-anchor="middle">for the Driver Interface</text>
+
+  <line class="ln" x1="840" y1="280" x2="866" y2="280"/>
+
+  <!-- Stage 4 -->
+  <rect class="grp" x="868" y="78" width="222" height="276" rx="8"/>
+  <text class="gt" x="979" y="104" text-anchor="middle">4. Layout Wiring &amp; Drivers</text>
+  <text class="ts" x="979" y="124" text-anchor="middle">Head Model &amp; Pin Encoder</text>
+
+  <rect class="box" x="884" y="140" width="190" height="84" rx="6"/>
+  <text class="tb" x="979" y="164" text-anchor="middle">Head Model Table</text>
+  <text class="ts" x="979" y="186" text-anchor="middle">Maps head word via model</text>
+  <text class="ts" x="979" y="204" text-anchor="middle">(H-2, Type D, SA, UQ, LQ)</text>
+
+  <rect class="box" x="884" y="236" width="190" height="100" rx="6"/>
+  <text class="tb" x="979" y="258" text-anchor="middle">Hardware Encoder &amp; Pins</text>
+  <text class="ts" x="979" y="280" text-anchor="middle">Drives R/Y/G lamps, 2-wire</text>
+  <text class="ts" x="979" y="298" text-anchor="middle">multiplexers, flashers, or</text>
+  <text class="ts" x="979" y="316" text-anchor="middle">semaphore servo angles</text>
+
+  <!-- Footer -->
+  <rect class="seam" x="30" y="370" width="1060" height="58" rx="8"/>
+  <text class="tb" x="50" y="394">Order of Operations:</text>
+  <text class="t" x="195" y="394">Vital Logic owns the Era/Rulebook indication set; Appliances split mast-to-heads; Layout Wiring owns the housing &amp; pins.</text>
+  <text class="ts" x="50" y="416">Because Vital Logic equations only produce indications the mast can display, both the distant relay (D) in rear and Smart Masts receive the same truth.</text>
+</svg>

@@ -1,0 +1,257 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="540" viewBox="0 0 1120 540" font-family="Helvetica, Arial, sans-serif">
+  <title>Generated Benchwork Documentation: Under-Board Cardstock Template and Wire Harness Diagram</title>
+  <defs>
+    <style>
+      .bg     { fill:#ffffff; }
+      .panel  { fill:#f8fafc; stroke:#94a3b8; stroke-width:1.5; }
+      .card   { fill:#fffbeb; stroke:#b45309; stroke-width:2; stroke-dasharray:6 3; }
+      .pcb    { fill:#065f46; stroke:#064e3b; stroke-width:2; }
+      .mod    { fill:#1e3a8a; stroke:#1e40af; stroke-width:1.5; }
+      .phx    { fill:#15803d; stroke:#14532d; stroke-width:1.5; }
+      .ic     { fill:#1f2937; stroke:#111827; stroke-width:1.2; }
+      .seg    { fill:#111827; stroke:#374151; stroke-width:1.2; }
+      .hole   { fill:#ffffff; stroke:#94a3b8; stroke-width:1.5; }
+      .h1     { fill:#0f172a; font-size:15px; font-weight:bold; }
+      .sub    { fill:#475569; font-size:11.5px; }
+      .lbl    { fill:#0f172a; font-family:monospace; font-size:10px; font-weight:bold; }
+      .lbl-s  { fill:#475569; font-family:monospace; font-size:9.5px; }
+      .silk   { fill:#ecfdf5; font-family:monospace; font-size:10px; font-weight:bold; }
+      .loom   { fill:none; stroke:#334155; stroke-width:7; stroke-linecap:round; stroke-linejoin:round; }
+      .loom-in{ fill:none; stroke:#cbd5e1; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1120" height="540"/>
+
+  <!-- LEFT PANEL: 1:1 Printed Cardstock Under-Board Mounting Template (cpNode-IOX) -->
+  <rect class="panel" x="20" y="16" width="530" height="508" rx="8"/>
+  <text class="h1" x="36" y="40">1. Printed Cardstock Under-Board Mounting Template (cpNode-IOX)</text>
+  <text class="sub" x="36" y="57">Mounted directly behind the PCB under the benchwork so every screw terminal is labeled in place</text>
+
+  <!-- Die-cut cardstock sheet with mounting hole alignment -->
+  <rect class="card" x="42" y="72" width="486" height="434" rx="10"/>
+  <text x="58" y="92" font-size="11" font-weight="bold" fill="#92400e">CARDSTOCK BACKING SHEET  ·  NODE: CORPORAL-BUNGALOW  ·  BOARD: IOX0 (I2C 0x20)</text>
+
+  <!-- Cardstock Top Callout Columns Aligned with Phoenix 4-Pin Blocks -->
+  <!-- J1: +5V Bus -->
+  <rect x="60" y="104" width="58" height="106" rx="4" fill="#ffffff" stroke="#d97706" stroke-width="1"/>
+  <text x="89" y="118" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#92400e">J1 (+5V)</text>
+  <text class="lbl-s" x="89" y="136" text-anchor="middle">1: +5V Aux</text>
+  <text class="lbl-s" x="89" y="154" text-anchor="middle">2: +5V Aux</text>
+  <text class="lbl-s" x="89" y="172" text-anchor="middle">3: +5V Cab</text>
+  <text class="lbl-s" x="89" y="190" text-anchor="middle">4: +5V Cab</text>
+
+  <!-- J2: Pins 16..13 (Mast 830WAB Head A + Head B) -->
+  <rect x="124" y="104" width="90" height="106" rx="4" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="169" y="118" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#1d4ed8">J2 (Pins 16–13)</text>
+  <text class="lbl" x="169" y="136" text-anchor="middle" fill="#b91c1c">16: 830WAB-A-R</text>
+  <text class="lbl" x="169" y="154" text-anchor="middle" fill="#15803d">15: 830WAB-A-G</text>
+  <text class="lbl" x="169" y="172" text-anchor="middle" fill="#1d4ed8">14: 830WAB-A-B</text>
+  <text class="lbl" x="169" y="190" text-anchor="middle" fill="#b91c1c">13: 830WAB-B-R</text>
+
+  <!-- J12: Pins 12..9 (Mast 830WAB Head B + Mast 828WA) -->
+  <rect x="220" y="104" width="90" height="106" rx="4" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="265" y="118" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#1d4ed8">J12 (Pins 12–9)</text>
+  <text class="lbl" x="265" y="136" text-anchor="middle" fill="#15803d">12: 830WAB-B-G</text>
+  <text class="lbl" x="265" y="154" text-anchor="middle" fill="#1d4ed8">11: 830WAB-B-B</text>
+  <text class="lbl" x="265" y="172" text-anchor="middle" fill="#b91c1c">10: 828WA-R</text>
+  <text class="lbl" x="265" y="190" text-anchor="middle" fill="#15803d"> 9: 828WA-G</text>
+
+  <!-- J11: Pins 8..5 (Switch 829 + Switch 827 Outputs/Inputs) -->
+  <rect x="316" y="104" width="90" height="106" rx="4" fill="#ffffff" stroke="#15803d" stroke-width="1.2"/>
+  <text x="361" y="118" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#15803d">J11 (Pins 8–5)</text>
+  <text class="lbl" x="361" y="136" text-anchor="middle">8: 829-MOTOR</text>
+  <text class="lbl" x="361" y="154" text-anchor="middle">7: 827-UNLOCK</text>
+  <text class="lbl-s" x="361" y="172" text-anchor="middle">6: [SPARE OUT]</text>
+  <text class="lbl-s" x="361" y="190" text-anchor="middle">5: [SPARE OUT]</text>
+
+  <!-- J16: Pins 4..1 (Switch 829 & 827 Sensor Inputs) -->
+  <rect x="412" y="104" width="102" height="106" rx="4" fill="#ffffff" stroke="#7e22ce" stroke-width="1.2"/>
+  <text x="463" y="118" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#7e22ce">J16 (Pins 4–1 In)</text>
+  <text class="lbl" x="463" y="136" text-anchor="middle">4: 829-NORM-IN</text>
+  <text class="lbl-s" x="463" y="154" text-anchor="middle">3: [829-REV SIM]</text>
+  <text class="lbl" x="463" y="172" text-anchor="middle">2: 829T1-OS-IN</text>
+  <text class="lbl" x="463" y="190" text-anchor="middle">1: 827T1-OS-IN</text>
+
+  <!-- The Physical cpNode-IOX PCB Mounted Centered on the Cardstock -->
+  <rect class="pcb" x="88" y="226" width="396" height="214" rx="6"/>
+  <!-- PCB Mounting Holes (matching cardstock holes) -->
+  <circle class="hole" cx="102" cy="240" r="5"/>
+  <circle class="hole" cx="470" cy="240" r="5"/>
+  <circle class="hole" cx="102" cy="426" r="5"/>
+  <circle class="hole" cx="470" cy="426" r="5"/>
+
+  <!-- Pluggable 3.5mm Phoenix Terminal Blocks along Top Edge of PCB -->
+  <rect class="phx" x="98" y="220" width="38" height="22" rx="2"/>
+  <text class="silk" x="117" y="235" text-anchor="middle">J1:5V</text>
+
+  <rect class="phx" x="148" y="220" width="64" height="22" rx="2"/>
+  <text class="silk" x="180" y="235" text-anchor="middle">16 15 14 13</text>
+
+  <rect class="phx" x="228" y="220" width="64" height="22" rx="2"/>
+  <text class="silk" x="260" y="235" text-anchor="middle">12 11 10  9</text>
+
+  <rect class="phx" x="316" y="220" width="64" height="22" rx="2"/>
+  <text class="silk" x="348" y="235" text-anchor="middle"> 8  7  6  5</text>
+
+  <rect class="phx" x="396" y="220" width="64" height="22" rx="2"/>
+  <text class="silk" x="428" y="235" text-anchor="middle"> 4  3  2  1</text>
+
+  <!-- Leader lines from Phoenix blocks up to Cardstock Callouts -->
+  <line x1="117" y1="220" x2="89" y2="210" stroke="#d97706" stroke-width="1.2" stroke-dasharray="2 2"/>
+  <line x1="180" y1="220" x2="169" y2="210" stroke="#1d4ed8" stroke-width="1.2" stroke-dasharray="2 2"/>
+  <line x1="260" y1="220" x2="265" y2="210" stroke="#1d4ed8" stroke-width="1.2" stroke-dasharray="2 2"/>
+  <line x1="348" y1="220" x2="361" y2="210" stroke="#15803d" stroke-width="1.2" stroke-dasharray="2 2"/>
+  <line x1="428" y1="220" x2="463" y2="210" stroke="#7e22ce" stroke-width="1.2" stroke-dasharray="2 2"/>
+
+  <!-- Port B & Port A Daughterboard Plugin Sockets on PCB -->
+  <rect class="mod" x="148" y="256" width="144" height="84" rx="4"/>
+  <text class="silk" x="220" y="278" text-anchor="middle">PORT B PLUGIN SOCKET</text>
+  <text x="220" y="298" text-anchor="middle" font-size="11" fill="#93c5fd" font-weight="bold">Install: IOX-Darlington</text>
+  <text x="220" y="316" text-anchor="middle" font-size="10" fill="#dbeafe">(8x Active-Low Lamp Sink)</text>
+
+  <rect class="mod" x="316" y="256" width="144" height="84" rx="4"/>
+  <text class="silk" x="388" y="278" text-anchor="middle">PORT A PLUGIN SOCKET</text>
+  <text x="388" y="298" text-anchor="middle" font-size="11" fill="#93c5fd" font-weight="bold">Install: IOX-Monitor</text>
+  <text x="388" y="316" text-anchor="middle" font-size="10" fill="#dbeafe">(4x Out + 4x Opto Input)</text>
+
+  <!-- U1 MCP23017, 7-Segment Address Display U3, and DIP Switch SW1 -->
+  <rect class="ic" x="200" y="356" width="96" height="44" rx="3"/>
+  <text class="silk" x="248" y="376" text-anchor="middle">U1: MCP23017</text>
+  <text x="248" y="391" text-anchor="middle" font-size="9.5" fill="#9ca3af">16-Ch I2C Expander</text>
+
+  <rect class="seg" x="332" y="352" width="44" height="54" rx="3"/>
+  <text x="354" y="370" text-anchor="middle" font-size="9" fill="#9ca3af">ADDR</text>
+  <text x="354" y="396" text-anchor="middle" font-family="monospace" font-size="22" font-weight="bold" fill="#ef4444">0</text>
+
+  <rect class="ic" x="392" y="356" width="68" height="48" rx="3"/>
+  <text class="silk" x="426" y="372" text-anchor="middle">SW1: 0x20</text>
+  <text x="426" y="388" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#fde68a">A2=0 A1=0</text>
+  <text x="426" y="400" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#fde68a">A0=0 (OFF)</text>
+
+  <!-- Left & Right I2C Chain Connectors -->
+  <rect class="phx" x="82" y="310" width="16" height="48" rx="2"/>
+  <text x="64" y="330" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#92400e">I2C IN</text>
+  <text class="lbl-s" x="64" y="344" text-anchor="middle">From</text>
+  <text class="lbl-s" x="64" y="356" text-anchor="middle">cpNode</text>
+
+  <rect class="phx" x="474" y="310" width="16" height="48" rx="2"/>
+  <text x="506" y="330" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#92400e">I2C OUT</text>
+  <text class="lbl-s" x="506" y="344" text-anchor="middle">To IOX1</text>
+  <text class="lbl-s" x="506" y="356" text-anchor="middle">(0x21)</text>
+
+  <!-- Cardstock Bottom Inspection & Verification Strip -->
+  <rect x="60" y="452" width="452" height="42" rx="4" fill="#ffffff" stroke="#d97706" stroke-width="1"/>
+  <text x="74" y="470" font-size="10.5" font-weight="bold" fill="#0f172a">BENCHWORK CHECKOUT:</text>
+  <text class="lbl-s" x="210" y="470">[✓] +5V Polarity   [✓] I2C Addr = 0x20   [✓] Lamp Sink Test   [✓] OS Drop Test</text>
+  <text class="lbl-s" x="74" y="486">Generated by Codeline from spcoast.layout.json  ·  Rev 2026-11  ·  Active-Low Default</text>
+
+  <!-- RIGHT PANEL: Logical Wire Harness / Cable Loom Diagram -->
+  <rect class="panel" x="566" y="16" width="534" height="508" rx="8"/>
+  <text class="h1" x="582" y="40">2. Logical Wire Harness &amp; Cable Loom Diagram (Bench-Build View)</text>
+  <text class="sub" x="582" y="57">Pre-build and continuity-test each appliance cable harness at the workbench before installation</text>
+
+  <!-- Harness 1: Mast 830WAB Cable Loom (C-830) -->
+  <rect x="582" y="74" width="502" height="214" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="596" y="94" font-size="12" font-weight="bold" fill="#0f172a">HARNESS L-830WAB  ·  Mast 830WAB (2-Head H-2 RGB) → IOX0 (J2 / J12)</text>
+  <text class="lbl-s" x="596" y="109">Cable: 8-Cond 24AWG Shielded  ·  Length: 4.5 ft (1.4 m)  ·  Common Anode (+5V)</text>
+
+  <!-- Left Source Box: Mast 830WAB Pigtail -->
+  <rect x="596" y="120" width="138" height="154" rx="4" fill="#f1f5f9" stroke="#64748b" stroke-width="1.2"/>
+  <text x="665" y="136" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#0f172a">MAST 830WAB PIGTAIL</text>
+  <text class="lbl" x="606" y="154" fill="#b91c1c">A-RED   (1)</text>
+  <text class="lbl" x="606" y="170" fill="#15803d">A-GRN   (2)</text>
+  <text class="lbl" x="606" y="186" fill="#1d4ed8">A-BLU   (3)</text>
+  <text class="lbl" x="606" y="204" fill="#b91c1c">B-RED   (4)</text>
+  <text class="lbl" x="606" y="220" fill="#15803d">B-GRN   (5)</text>
+  <text class="lbl" x="606" y="236" fill="#1d4ed8">B-BLU   (6)</text>
+  <text class="lbl" x="606" y="256" fill="#b45309">COM +5V (7)</text>
+
+  <!-- Right Destination Boxes: Phoenix Plugs J2, J12, J1 -->
+  <rect x="932" y="120" width="138" height="72" rx="4" fill="#ecfdf5" stroke="#15803d" stroke-width="1.2"/>
+  <text x="1001" y="135" text-anchor="middle" font-size="10" font-weight="bold" fill="#14532d">PLUG J2 (IOX0)</text>
+  <text class="lbl" x="942" y="150">Pin 16 (GPA7)</text>
+  <text class="lbl" x="942" y="163">Pin 15 (GPA6)</text>
+  <text class="lbl" x="942" y="176">Pin 14 (GPA5)</text>
+  <text class="lbl" x="942" y="189">Pin 13 (GPA4)</text>
+
+  <rect x="932" y="198" width="138" height="44" rx="4" fill="#ecfdf5" stroke="#15803d" stroke-width="1.2"/>
+  <text x="1001" y="212" text-anchor="middle" font-size="10" font-weight="bold" fill="#14532d">PLUG J12 (IOX0)</text>
+  <text class="lbl" x="942" y="225">Pin 12 (GPA3)</text>
+  <text class="lbl" x="942" y="238">Pin 11 (GPA2)</text>
+
+  <rect x="932" y="246" width="138" height="28" rx="4" fill="#fffbeb" stroke="#d97706" stroke-width="1.2"/>
+  <text class="lbl" x="942" y="264" fill="#92400e">PLUG J1-1 (+5V Bus)</text>
+
+  <!-- Loom Trunk & Fan-Out Lines for L-830NAB -->
+  <polyline class="loom" points="776,198 886,198"/>
+  <polyline class="loom-in" points="776,198 886,198"/>
+  <rect x="790" y="174" width="82" height="18" rx="3" fill="#334155"/>
+  <text x="831" y="186" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="bold" fill="#ffffff">LOOM L-830</text>
+
+  <!-- Left Fan-in -->
+  <polyline points="734,150 762,150 776,198" fill="none" stroke="#dc2626" stroke-width="2"/>
+  <polyline points="734,166 760,166 776,198" fill="none" stroke="#16a34a" stroke-width="2"/>
+  <polyline points="734,182 758,182 776,198" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <polyline points="734,200 758,200 776,198" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 2"/>
+  <polyline points="734,216 760,216 776,198" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="4 2"/>
+  <polyline points="734,232 762,232 776,198" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4 2"/>
+  <polyline points="734,252 764,252 776,198" fill="none" stroke="#d97706" stroke-width="2"/>
+
+  <!-- Right Fan-out -->
+  <polyline points="886,198 904,147 932,147" fill="none" stroke="#dc2626" stroke-width="2"/>
+  <polyline points="886,198 906,160 932,160" fill="none" stroke="#16a34a" stroke-width="2"/>
+  <polyline points="886,198 908,173 932,173" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <polyline points="886,198 910,186 932,186" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 2"/>
+  <polyline points="886,198 908,222 932,222" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="4 2"/>
+  <polyline points="886,198 906,235 932,235" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4 2"/>
+  <polyline points="886,198 904,260 932,260" fill="none" stroke="#d97706" stroke-width="2"/>
+
+  <!-- Harness 2: Switch 829 + OS 829T1 Loom (Showing Emulated Sensor & Split Destination) -->
+  <rect x="582" y="300" width="502" height="206" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="596" y="320" font-size="12" font-weight="bold" fill="#0f172a">HARNESS L-829  ·  Switch 829 + OS Detector 829T1 → IOX0 (J11 / J16)</text>
+  <text class="lbl-s" x="596" y="335">Profile: Stall Motor + Single Normal Contact (Reverse Contact Emulated in Software)</text>
+
+  <!-- Left Source Box: Switch 829 Terminal Strip -->
+  <rect x="596" y="348" width="146" height="142" rx="4" fill="#f1f5f9" stroke="#64748b" stroke-width="1.2"/>
+  <text x="669" y="364" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#0f172a">SWITCH 829 + 829T1</text>
+  <text class="lbl" x="606" y="384" fill="#0f172a">MOTOR     (M)</text>
+  <text class="lbl" x="606" y="406" fill="#1d4ed8">NORM-SW   (N)</text>
+  <text class="lbl-s" x="606" y="428" fill="#64748b">REV-SW    (R)</text>
+  <text class="lbl" x="606" y="450" fill="#7e22ce">829T1-OCC (OS)</text>
+  <text class="lbl" x="606" y="472" fill="#475569">RTN GND   (G)</text>
+
+  <!-- Emulated Badge on REV-SW -->
+  <rect x="748" y="415" width="174" height="18" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1"/>
+  <text x="835" y="427" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="bold" fill="#92400e">EMULATED (3.0s Transit — No Wire)</text>
+
+  <!-- Loom Trunk for L-829 -->
+  <polyline class="loom" points="782,395 882,395"/>
+  <polyline class="loom-in" points="782,395 882,395"/>
+  <rect x="794" y="371" width="76" height="18" rx="3" fill="#334155"/>
+  <text x="832" y="383" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="bold" fill="#ffffff">LOOM L-829</text>
+
+  <polyline points="742,380 768,380 782,395" fill="none" stroke="#0f172a" stroke-width="2"/>
+  <polyline points="742,402 768,402 782,395" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <polyline points="742,446 768,446 782,395" fill="none" stroke="#7e22ce" stroke-width="2"/>
+  <polyline points="742,468 768,468 782,395" fill="none" stroke="#475569" stroke-width="2"/>
+
+  <!-- Right Destination Boxes for L-829 -->
+  <rect x="932" y="348" width="138" height="36" rx="4" fill="#ecfdf5" stroke="#15803d" stroke-width="1.2"/>
+  <text x="1001" y="362" text-anchor="middle" font-size="10" font-weight="bold" fill="#14532d">PLUG J11 (IOX0 Out)</text>
+  <text class="lbl" x="942" y="376">Pin 8 (GPB7 Out)</text>
+
+  <rect x="932" y="392" width="138" height="60" rx="4" fill="#faf5ff" stroke="#7e22ce" stroke-width="1.2"/>
+  <text x="1001" y="406" text-anchor="middle" font-size="10" font-weight="bold" fill="#6b21a8">PLUG J16 (IOX0 In)</text>
+  <text class="lbl" x="942" y="420">Pin 4 (GPB3 In)</text>
+  <text class="lbl-s" x="942" y="433">Pin 3 (Unwired)</text>
+  <text class="lbl" x="942" y="446">Pin 2 (GPB1 In)</text>
+
+  <rect x="932" y="458" width="138" height="32" rx="4" fill="#f1f5f9" stroke="#64748b" stroke-width="1.2"/>
+  <text class="lbl" x="942" y="478" fill="#334155">PLUG J15-4 (GND Bus)</text>
+
+  <polyline points="882,395 906,372 932,372" fill="none" stroke="#0f172a" stroke-width="2"/>
+  <polyline points="882,395 906,416 932,416" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <polyline points="882,395 906,442 932,442" fill="none" stroke="#7e22ce" stroke-width="2"/>
+  <polyline points="882,395 906,474 932,474" fill="none" stroke="#475569" stroke-width="2"/>
+</svg>

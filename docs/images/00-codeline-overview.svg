@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="440" viewBox="0 0 1120 440" font-family="Helvetica, Arial, sans-serif">
+  <title>What You Design in Codeline — And What Codeline Delivers</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333333"/>
+    </marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f5fbf"/>
+    </marker>
+    <style>
+      .bg    { fill:#ffffff; }
+      .grp   { fill:#e9eef5; stroke:#555555; stroke-width:2; }
+      .hub   { fill:#fde8e8; stroke:#b00000; stroke-width:2.5; }
+      .out   { fill:#eef6ec; stroke:#4f7d45; stroke-width:2; }
+      .seam  { fill:#fff3cc; stroke:#8a6d00; stroke-width:2; }
+      .box   { fill:#ffffff; stroke:#333333; stroke-width:1.5; }
+      .h1    { fill:#333333; font-size:21px; font-weight:bold; }
+      .gt    { fill:#333333; font-size:15px; font-weight:bold; }
+      .tb    { fill:#333333; font-size:14px; font-weight:bold; }
+      .t     { fill:#333333; font-size:13px; }
+      .ts    { fill:#555555; font-size:12.5px; }
+      .ln    { stroke:#333333; stroke-width:2; fill:none; marker-end:url(#a); }
+      .bln   { stroke:#1f5fbf; stroke-width:2; fill:none; marker-end:url(#b); }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1120" height="440"/>
+
+  <text class="h1" x="30" y="36">From Layout Vision to Operating Railroad</text>
+  <text class="ts" x="30" y="58">Example: Designing the mid-1990s Southern Pacific Coast Line from Gilroy to Watsonville in railroad terms</text>
+
+  <!-- Left Column: The 4 Designer Inputs -->
+  <rect class="grp" x="30" y="76" width="350" height="338" rx="10"/>
+  <text class="gt" x="205" y="102" text-anchor="middle">WHAT THE DESIGNER DESCRIBES</text>
+
+  <rect class="box" x="48" y="116" width="314" height="62" rx="6"/>
+  <text class="tb" x="64" y="138">1. Trackplan &amp; Historical Context</text>
+  <text class="ts" x="64" y="158">Mainlines, sidings, yards, branches + Railroad,</text>
+  <text class="ts" x="64" y="172">Era, Rulebook &amp; Operating Regimes</text>
+
+  <rect class="box" x="48" y="188" width="314" height="62" rx="6"/>
+  <text class="tb" x="64" y="210">2. Trackside Appliances</text>
+  <text class="ts" x="64" y="230">Switches, derails, locks, track circuits, signal</text>
+  <text class="ts" x="64" y="244">masts &amp; train-order boards along the right-of-way</text>
+
+  <rect class="box" x="48" y="260" width="314" height="62" rx="6"/>
+  <text class="tb" x="64" y="282">3. Dispatcher &amp; Wayside Panels</text>
+  <text class="ts" x="64" y="302">Remote CTC machines &amp; yard ladder knobs,</text>
+  <text class="ts" x="64" y="316">plus local crew fascia &amp; train-order controls</text>
+
+  <rect class="box" x="48" y="332" width="314" height="66" rx="6"/>
+  <text class="tb" x="64" y="354">4. Layout Connections</text>
+  <text class="ts" x="64" y="374">How appliances connect on the layout: virtual</text>
+  <text class="ts" x="64" y="388">simulators, MQTT/C/MRI nodes, or wired I/O pins</text>
+
+  <!-- Arrow from Designer Inputs into Codeline Engine -->
+  <line class="ln" x1="380" y1="245" x2="422" y2="245" stroke-width="3"/>
+
+  <!-- Center Hub: Codeline Engine (Same height: y=76, height=338) -->
+  <rect class="hub" x="424" y="76" width="272" height="338" rx="10"/>
+  <text class="gt" x="560" y="98" text-anchor="middle" fill="#b00000">CODELINE</text>
+  <text class="ts" x="560" y="112" text-anchor="middle">Live AREMA &amp; Rulebook Engine</text>
+
+  <rect class="box" x="442" y="122" width="236" height="60" rx="6"/>
+  <text class="tb" x="560" y="144" text-anchor="middle">Applies Context &amp; Regimes</text>
+  <text class="ts" x="560" y="164" text-anchor="middle">Sets smart era &amp; rulebook defaults</text>
+
+  <rect class="box" x="442" y="192" width="236" height="60" rx="6"/>
+  <text class="tb" x="560" y="214" text-anchor="middle">Synthesizes Routes &amp; Blocks</text>
+  <text class="ts" x="560" y="234" text-anchor="middle">Control tables &amp; traffic locking</text>
+
+  <rect class="box" x="442" y="262" width="236" height="60" rx="6"/>
+  <text class="tb" x="560" y="284" text-anchor="middle">Enforces Vital Relay Rules</text>
+  <text class="ts" x="560" y="304" text-anchor="middle">Detector, route &amp; approach locks</text>
+
+  <rect class="box" x="442" y="332" width="236" height="66" rx="6"/>
+  <text class="tb" x="560" y="356" text-anchor="middle">Resolves Signal Aspects</text>
+  <text class="ts" x="560" y="376" text-anchor="middle">Period-correct by Railroad &amp; Era</text>
+
+  <!-- Arrow from Codeline Engine out to Deliverables -->
+  <line class="bln" x1="696" y1="245" x2="738" y2="245" stroke-width="3"/>
+
+  <!-- Right Column: What Codeline Delivers -->
+  <rect class="out" x="740" y="76" width="350" height="338" rx="10"/>
+  <text class="gt" x="915" y="102" text-anchor="middle" fill="#2d5a27">WHAT CODELINE DELIVERS</text>
+
+  <rect class="box" x="758" y="116" width="314" height="62" rx="6"/>
+  <text class="tb" x="774" y="138">Play "What-If" Today in Simulation</text>
+  <text class="ts" x="774" y="158">Run virtual trains &amp; test dispatching before</text>
+  <text class="ts" x="774" y="172">buying a single chip or soldering a wire</text>
+
+  <rect class="box" x="758" y="188" width="314" height="62" rx="6"/>
+  <text class="tb" x="774" y="210">Live Relay &amp; Control Table Inspection</text>
+  <text class="ts" x="774" y="230">Watch animated AREMA relay circuits pick up</text>
+  <text class="ts" x="774" y="244">and drop to see exactly why a signal is at Stop</text>
+
+  <rect class="box" x="758" y="260" width="314" height="62" rx="6"/>
+  <text class="tb" x="774" y="282">Turnkey Bungalow &amp; Panel Firmware</text>
+  <text class="ts" x="774" y="302">Generates ready-to-flash code for field units,</text>
+  <text class="ts" x="774" y="316">CTC consoles, and smart MQTT / C/MRI nodes</text>
+
+  <rect class="box" x="758" y="332" width="314" height="66" rx="6"/>
+  <text class="tb" x="774" y="354">Shop Wiring Sheets &amp; Engineering Packets</text>
+  <text class="ts" x="774" y="374">Printable terminal-block wiring checklists</text>
+  <text class="ts" x="774" y="388">and prototype interlocking control tables</text>
+</svg>

@@ -1,0 +1,206 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="430" viewBox="0 0 1120 430" font-family="Helvetica, Arial, sans-serif">
+  <title>CP Corporal and CP Sargent — Combined Trackplan</title>
+  <defs>
+    <marker id="arr-nb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,1 L9,5 L0,9 z" fill="#b45309"/>
+    </marker>
+  </defs>
+  <rect width="1120" height="430" fill="#ffffff"/>
+  <rect x="20" y="16" width="1080" height="368" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="28" y="24" width="402.8" height="28" rx="5" fill="#e2e8f0"/>
+  <text x="229.4" y="43" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">CP CORPORAL (MP 83.0)</text>
+  <rect x="438.8" y="24" width="369.0" height="28" rx="5" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="623.3" y="43" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e40af">Beet Loader</text>
+  <rect x="815.8" y="24" width="276.2" height="28" rx="5" fill="#e2e8f0"/>
+  <text x="953.9" y="43" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">CP SARGENT (MP 83.5)</text>
+  <line x1="32" y1="86.3" x2="1088" y2="86.3" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="32" y1="152.2" x2="1088" y2="152.2" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="32" y1="218.0" x2="1088" y2="218.0" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="32" y1="283.8" x2="1088" y2="283.8" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="56.0" y1="218.0" x2="430.8" y2="218.0" stroke="#fde68a" stroke-width="14" stroke-linecap="round"/>
+  <line x1="552.4" y1="86.3" x2="628.4" y2="86.3" stroke="#7e22ce" stroke-width="3.6" stroke-linecap="round"/>
+  <line x1="552.4" y1="152.2" x2="628.4" y2="152.2" stroke="#7e22ce" stroke-width="3.6" stroke-linecap="round"/>
+  <text x="590.4" y="78.3" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#6b21a8">Beet Loader Track 1</text>
+  <text x="590.4" y="144.2" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#6b21a8">Beet Loader Track 2</text>
+  <text x="590.4" y="123.2" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#475569">1T1</text>
+  <polyline points="56.0,283.8 121.8,283.8" stroke="#15803d" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="56.0,218.0 121.8,218.0" stroke="#15803d" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="359.9,152.2 425.8,152.2" stroke="#7e22ce" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="132.0,218.0 152.2,218.0" stroke="#1d4ed8" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="319.4,152.2 349.8,152.2" stroke="#1d4ed8" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="132.0,283.8 278.9,283.8" stroke="#1d4ed8" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="395.4,218.0 420.7,218.0" stroke="#1d4ed8" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="430.8,218.0 522.0,218.0" stroke="#1d4ed8" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="532.1,218.0 628.4,218.0" stroke="#1d4ed8" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="552.4,86.3 628.4,86.3" stroke="#7e22ce" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="552.4,152.2 628.4,152.2" stroke="#7e22ce" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="126.9,233.2 126.9,228.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="119.3,223.1 124.4,223.1 124.4,212.9 119.3,212.9" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="134.5,223.1 129.4,223.1 129.4,212.9 134.5,212.9" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="126.9,299.0 126.9,294.0" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="119.3,288.9 124.4,288.9 124.4,278.8 119.3,278.8" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="134.5,288.9 129.4,288.9 129.4,278.8 134.5,278.8" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="281.4,212.9 276.3,212.9 276.3,223.1 281.4,223.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="266.2,212.9 271.3,212.9 271.3,223.1 266.2,223.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="354.9,137.0 354.9,142.0" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="362.5,147.1 357.4,147.1 357.4,157.2 362.5,157.2" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="347.3,147.1 352.3,147.1 352.3,157.2 347.3,157.2" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="425.8,202.8 425.8,207.9" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="433.4,212.9 428.3,212.9 428.3,223.1 433.4,223.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="418.2,212.9 423.2,212.9 423.2,223.1 418.2,223.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="423.2,157.2 428.3,157.2 428.3,147.1 423.2,147.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="438.4,157.2 433.4,157.2 433.4,147.1 438.4,147.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="527.1,233.2 527.1,228.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="527.1,202.8 527.1,207.9" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="534.7,212.9 529.6,212.9 529.6,223.1 534.7,223.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="519.5,212.9 524.5,212.9 524.5,223.1 519.5,223.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="390.3" y="144.2" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#475569">01T</text>
+  <circle cx="481.5" cy="152.2" r="5.1" style="stroke:#333333;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;fill:#ff0000"/>
+  <polyline points="435.9,152.2 476.4,152.2" style="stroke:#7e22ce;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="479.0,142.5 481.5,135.9 484.0,142.5 479.0,142.5" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="486.6,152.2 552.4,152.2" style="stroke:#7e22ce;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="552.4,86.3 542.3,86.3 486.6,144.6 479.0,144.6" style="stroke:#7e22ce;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <circle cx="197.8" cy="218.0" r="5.1" style="stroke:#333333;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;fill:#ffff00"/>
+  <polyline points="152.2,218.0 192.8,218.0" style="stroke:#1d4ed8;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="195.3,205.3 197.8,207.9" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="197.8,210.4 197.8,205.3" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="197.8,207.9 200.4,205.3" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="198.2,207.0 197.4,207.0" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="198.7,206.7 197.1,206.7" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="199.2,206.2 196.6,206.2" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="199.5,205.8 196.1,205.8" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="202.9,218.0 268.7,218.0" style="stroke:#1d4ed8;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="200.4,205.3 195.3,205.3" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="268.7,152.2 258.6,152.2 202.9,210.4 195.3,210.4" style="stroke:#1d4ed8;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="294.1" y="142.6" text-anchor="middle" font-size="9.0" fill="#222222">D</text>
+  <polyline points="319.4,152.2 268.7,152.2" style="stroke:#1d4ed8;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="276.3,131.9 289.0,144.6 296.6,144.6" style="stroke:#1d4ed8;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <circle cx="344.7" cy="126.8" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="354.9,121.8 354.9,131.9" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="349.8,126.8 354.9,126.8" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="358.9" y="130.8" text-anchor="start" font-family="monospace" font-size="11.5" font-weight="bold" fill="#b00000">828WA</text>
+  <circle cx="152.2" cy="243.3" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="126.9,243.3 147.2,243.3" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="126.9,248.4 126.9,238.3" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="122.9" y="247.3" text-anchor="end" font-family="monospace" font-size="11.5" font-weight="bold" fill="#b00000">828EA</text>
+  <circle cx="349.8" cy="218.0" r="5.1" style="stroke:#333333;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;fill:#ff0000"/>
+  <polyline points="395.4,218.0 354.9,218.0" style="stroke:#1d4ed8;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="352.3,225.6 352.3,230.7" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="349.8,225.6 349.8,230.7" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="344.7,218.0 278.9,218.0" style="stroke:#1d4ed8;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="347.3,225.6 347.3,230.7" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="278.9,283.8 289.0,283.8 344.7,225.6 352.3,225.6" style="stroke:#1d4ed8;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <circle cx="405.5" cy="192.7" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <circle cx="395.4" cy="192.7" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="425.8,192.7 415.6,192.7" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="425.8,187.6 425.8,197.7" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="410.6,192.7 415.6,192.7" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="429.8" y="196.7" text-anchor="start" font-family="monospace" font-size="11.5" font-weight="bold" fill="#b00000">830WAB</text>
+  <circle cx="147.2" cy="309.2" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <circle cx="157.3" cy="309.2" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="126.9,309.2 137.0,309.2" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="126.9,314.2 126.9,304.1" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="142.1,309.2 137.0,309.2" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="122.9" y="313.2" text-anchor="end" font-family="monospace" font-size="11.5" font-weight="bold" fill="#b00000">830EAB</text>
+  <text x="516.9" y="185.7" text-anchor="middle" font-size="9.0" fill="#222222">###</text>
+  <circle cx="501.7" cy="192.7" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="522.0,187.6 511.9,187.6 511.9,177.5 522.0,177.5 522.0,187.6" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="527.1,192.7 506.8,192.7" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="527.1,187.6 527.1,197.7" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="516.9,192.7 516.9,187.6" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="531.1" y="196.7" text-anchor="start" font-family="monospace" font-size="11.5" font-weight="bold" fill="#b00000">831WA</text>
+  <text x="537.2" y="256.6" text-anchor="middle" font-size="9.0" fill="#222222">###</text>
+  <circle cx="552.4" cy="243.3" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="532.1,248.4 542.3,248.4 542.3,258.5 532.1,258.5 532.1,248.4" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="527.1,243.3 547.3,243.3" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="527.1,248.4 527.1,238.3" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="537.2,243.3 537.2,248.4" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="523.1" y="247.3" text-anchor="end" font-family="monospace" font-size="11.5" font-weight="bold" fill="#b00000">832EA</text>
+  <text x="481.5" y="210.0" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#475569">832T</text>
+  <text x="577.7" y="210.0" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#475569">834T</text>
+  <polyline points="628.4,218.0 684.1,218.0" stroke="#1d4ed8" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="952.6,218.0 1064.0,218.0" stroke="#1d4ed8" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="755.0,152.2 815.8,152.2" stroke="#7e22ce" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="694.2,218.0 815.8,218.0" stroke="#1d4ed8" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="689.2,233.2 689.2,228.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="689.2,202.8 689.2,207.9" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="696.8,212.9 691.7,212.9 691.7,223.1 696.8,223.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="681.6,212.9 686.6,212.9 686.6,223.1 681.6,223.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="757.5,147.1 752.5,147.1 752.5,157.2 757.5,157.2" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="742.4,147.1 747.4,147.1 747.4,157.2 742.4,157.2" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="820.9,167.3 820.9,162.3" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="813.3,157.2 818.3,157.2 818.3,147.1 813.3,147.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="828.5,157.2 823.4,157.2 823.4,147.1 828.5,147.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="820.9,233.2 820.9,228.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="813.3,223.1 818.3,223.1 818.3,212.9 813.3,212.9" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="828.5,223.1 823.4,223.1 823.4,212.9 828.5,212.9" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="947.5,202.8 947.5,207.9" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="955.1,212.9 950.0,212.9 950.0,223.1 955.1,223.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="939.9,212.9 945.0,212.9 945.0,223.1 939.9,223.1" style="stroke:#b00000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <circle cx="699.3" cy="152.2" r="5.1" style="stroke:#333333;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;fill:#ff0000"/>
+  <polyline points="744.9,152.2 704.4,152.2" style="stroke:#7e22ce;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="701.8,142.5 699.3,135.9 696.8,142.5 701.8,142.5" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="694.2,152.2 628.4,152.2" style="stroke:#7e22ce;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="628.4,86.3 638.5,86.3 694.2,144.6 701.8,144.6" style="stroke:#7e22ce;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="1008.3" y="210.0" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#475569">1WAT</text>
+  <text x="785.4" y="144.2" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#475569">2EAT</text>
+  <text x="679.0" y="185.7" text-anchor="middle" font-size="9.0" fill="#222222">###</text>
+  <circle cx="663.8" cy="192.7" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="684.1,187.6 674.0,187.6 674.0,177.5 684.1,177.5 684.1,187.6" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="689.2,192.7 668.9,192.7" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="689.2,187.6 689.2,197.7" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="679.0,192.7 679.0,187.6" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="693.2" y="196.7" text-anchor="start" font-family="monospace" font-size="11.5" font-weight="bold" fill="#b00000">833WA</text>
+  <text x="699.3" y="256.6" text-anchor="middle" font-size="9.0" fill="#222222">###</text>
+  <circle cx="714.5" cy="243.3" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="694.2,248.4 704.4,248.4 704.4,258.5 694.2,258.5 694.2,248.4" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="689.2,243.3 709.4,243.3" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="689.2,248.4 689.2,238.3" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="699.3,243.3 699.3,248.4" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="685.2" y="247.3" text-anchor="end" font-family="monospace" font-size="11.5" font-weight="bold" fill="#b00000">834EA</text>
+  <circle cx="896.8" cy="218.0" r="5.1" style="stroke:#333333;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;fill:#ffff00"/>
+  <polyline points="942.4,218.0 901.9,218.0" style="stroke:#1d4ed8;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="899.4,205.3 896.8,207.9" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="896.8,210.4 896.8,205.3" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="896.8,207.9 894.3,205.3" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="896.5,207.0 897.2,207.0" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="896.0,206.7 897.6,206.7" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="895.5,206.2 898.1,206.2" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="895.2,205.8 898.6,205.8" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="891.8,218.0 825.9,218.0" style="stroke:#1d4ed8;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="894.3,205.3 899.4,205.3" style="stroke:#333333;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="825.9,152.2 836.1,152.2 891.8,210.4 899.4,210.4" style="stroke:#1d4ed8;stroke-width:3.8;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <circle cx="927.2" cy="192.7" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <circle cx="917.1" cy="192.7" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="947.5,192.7 937.4,192.7" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="947.5,187.6 947.5,197.7" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="932.3,192.7 937.4,192.7" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="951.5" y="196.7" text-anchor="start" font-family="monospace" font-size="11.5" font-weight="bold" fill="#b00000">836WAB</text>
+  <circle cx="846.2" cy="243.3" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="820.9,243.3 841.1,243.3" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="820.9,248.4 820.9,238.3" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="816.9" y="247.3" text-anchor="end" font-family="monospace" font-size="11.5" font-weight="bold" fill="#b00000">836EA</text>
+  <circle cx="831.0" cy="177.5" r="5.0" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="820.9,182.5 820.9,172.4" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <polyline points="825.9,177.5 820.9,177.5" style="stroke:#0f172a;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+  <text x="816.9" y="181.5" text-anchor="end" font-family="monospace" font-size="11.5" font-weight="bold" fill="#b00000">836EB</text>
+  <text x="775.3" y="210.0" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#475569">836T</text>
+  <text x="56" y="208.0" font-size="12" font-weight="bold" fill="#15803d">← MT1</text>
+  <text x="56" y="273.8" font-size="12" font-weight="bold" fill="#15803d">MT2 →</text>
+  <text x="135.8" y="210.0" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#475569">827T1</text>
+  <text x="199.6" y="275.8" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#475569">829T1</text>
+  <text x="899.6" y="210.0" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#475569">835T1</text>
+  <line x1="193.0" y1="224.0" x2="193.0" y2="356.0" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <text x="193.0" y="370.0" text-anchor="middle" font-family="monospace" font-size="13" font-weight="bold" fill="#0f172a">827</text>
+  <line x1="354.6" y1="289.8" x2="354.6" y2="356.0" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <text x="354.6" y="370.0" text-anchor="middle" font-family="monospace" font-size="13" font-weight="bold" fill="#0f172a">829</text>
+  <line x1="901.7" y1="224.0" x2="901.7" y2="356.0" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <text x="901.7" y="370.0" text-anchor="middle" font-family="monospace" font-size="13" font-weight="bold" fill="#0f172a">835</text>
+  <line x1="36" y1="408" x2="66" y2="408" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round"/>
+  <text x="74" y="412" font-size="12" fill="#333333" font-weight="bold">CTC (Single Track &amp; OS)</text>
+  <line x1="250" y1="408" x2="280" y2="408" stroke="#15803d" stroke-width="4" stroke-linecap="round"/>
+  <text x="288" y="412" font-size="12" fill="#333333" font-weight="bold">Rule 251 Double Track (MT1 / MT2)</text>
+  <line x1="530" y1="408" x2="560" y2="408" stroke="#7e22ce" stroke-width="4" stroke-linecap="round"/>
+  <text x="568" y="412" font-size="12" fill="#333333" font-weight="bold">Beet Loader Siding &amp; Spurs (01T / 1T1 / 2EAT)</text>
+  <text x="1084" y="412" text-anchor="end" font-size="12" fill="#555555">Switch numbers shown along bottom</text>
+</svg>
