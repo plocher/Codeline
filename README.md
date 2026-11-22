@@ -40,3 +40,4 @@ Codeline splits layout design, vital railroad logic, and physical hardware into 
 | **[Appliance Catalog](docs/appliances/README.Appliances.md)** | Transport-agnostic normative catalog of all 7 Smart Appliances (`TURNOUT`, `SENSOR`, `SIGNALMAST`, `TRAINORDER`, `CROSSING`, `CONTROL`, `LAMP`) |
 | **[C++ Binding](docs/bindings/Cpp.md)** | Embedded C++ in-process binding, Reference Appliance Core + Driver Port, local/mirror/remote MQTT glue stack, and deterministic functional test harness |
 | **[MQTT Binding](docs/bindings/MQTT.md)** | Mechanical MQTT transport and `TOKEN`/`(TOKEN)` wire encoding binding, retention, LWT, jittered dynamic discovery, and `CONTROL` wire traces |
+| **[Roadmap](docs/Roadmap.md)** | Implementation order, milestones up to an on-screen CP Corporal panel, what is harvested from earlier work, and open questions |
