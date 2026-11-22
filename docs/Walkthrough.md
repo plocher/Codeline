@@ -15,47 +15,47 @@ These three worked examples trace concrete operating and maintenance scenarios a
 
 A westbound freight from Watsonville has cleared **CP Sargent** (`SIGNALMAST` `836WAB`) onto the single-track mainline toward **CP Corporal**, where single track expands into directional double track (`MT1` Westbound and `MT2` Eastbound) over **Switch 829**. Clearing `836WAB` established westbound traffic locking across the single track, lining intermediate permissive signals **`833WA`** (block `834T`) and **`831WA`** (block `832T`) ahead of the train, with `831WA` displaying `APPROACH` toward Corporal's westbound two-head US&S H-2 searchlight home signal, **Mast `830WAB`** (currently at `STOP`).
 
-### Why CP Corporal Has Two Switch-and-Signal Groups
+### Why CP Corporal Has Two Interlocking Sections
 
-CP Corporal is split into two interlocking sections—**Switch 829 / Signal 830** (`829T1`) on the east and **Switch 827 / Signal 828** (`827T1`) on the west (paired with dependent derail **`827D`** on the Beet Loader siding):
+CP Corporal is split into two interlocking sections—**Power Switch 829 / Signal 830** (`829T1`) on the east and **Electrically Locked Switch 827 / Signal 828** (`827T1`, paired with dependent derail **`827D`** on the Beet Loader siding) on the west:
 
-- Splitting the plant enables **simultaneous parallel moves**: an eastbound train on `MT2` can run `830EAB → Switch 829 Reverse` onto the single track while a local switcher exits the Beet Loader siding over `828WA → Switch 827 Reverse` heading west onto `MT1`.
-- For our through westbound freight continuing straight onto `MT1` (`Switch 829 Normal → Switch 827 Normal`), the route traverses **both** `829T1` and `827T1`. Because there is no intermediate home mast between `829` and `827` on the main track, clearing **Mast `830WAB`** onto `MT1` requires **both** `Switch 829 Normal + Signal 830 Left` and `Switch 827 Normal + Signal 828 Left`.
+- Splitting the plant enables **simultaneous parallel moves**: an eastbound train on `MT2` can run `830EAB → Switch 829 Reverse` onto the single track while a local crew requests an electric-lock release on `827` (`827WLQK` → dispatcher sends `827WLS`) and exits the Beet Loader siding over `827D` and `827` heading west onto `MT1`.
+- For our through westbound freight continuing straight onto `MT1` (`Switch 829 Normal → Switch 827 Locked Normal`), the route traverses **both** `829T1` and `827T1`. Because there is no intermediate home mast between `829` and `827` on the main track, clearing **Mast `830WAB`** onto `MT1` requires **Switch 829 Normal + Signal 830 Left**, **Electric Lock 827 Locked** (`(827WLS)`), and **Signal 828 Left**.
 
 ### Step-by-Step Wire Trace
 
-At the CTC console (`CONTROL`), the dispatcher verifies **Switch Lever 827** is `NORMAL`, sets **Switch Lever 829** to `NORMAL`, turns **Signal Levers 830 and 828** to `LEFT` (westbound), and presses **CODE**. Notice that the CTC machine sends only the station control frame—it knows nothing about mast counts, head layouts, or LED colors:
+At the CTC console (`CONTROL`), the dispatcher verifies **Lock Lever 827** is `LOCKED` (`(827WLS)`), sets **Switch Lever 829** to `NORMAL`, turns **Signal Levers 828 and 830** to `LEFT` (westbound), leaves **Maintainer Call `1MC`** off, and presses **CODE**. Every Code Line frame on `/layout/SPCoast/codeline/Corporal/{controls,indications}` is **complete**—opening with `CHART 85973c19` and carrying every station function in chart order (wrapped across lines below for readability; see [**Code Line MQTT Binding**](bindings/CodeLineMQTT.md)):
 
 ```text
 Dispatcher Office             Codeline (Vital Logic)              Smart Appliances (at Corporal)
 ─────────────────             ──────────────────────              ──────────────────────────────
 1. Press CODE button
-   codelines/.../controls ──▶ "827NWS (827RWS)
-                               829NWS (829RWS)
-                               828WGS 830WGS"
+   .../Corporal/controls ──▶  "CHART 85973c19 829NWS (829RWS) (827WLS)
+                               828WGS (828EGS) (828HS)
+                               830WGS (830EGS) (830HS) (1MCS)"
 
-                              2. Checks OS occupancy & locks:
+                              2. Checks OS occupancy, locks & opposing signals:
                                  /sensor/829T1/state == "(ACTIVE)"
                                  /sensor/827T1/state == "(ACTIVE)"
+                                 /control/lock:827/state == "(SW1)"  (locked normal)
+                                 /turnout/827D/state == "NORMAL (REVERSE)" (derailing)
                                  /signalmast/830EAB/state == "STOP"
                                  /signalmast/828EA/state  == "STOP"
-                                 -> 829WLR & 827WLR pick
+                                 -> 829WLR picks; 827 stays locked
 
-                              3. Commands switches & independent derail:
+                              3. Commands power switch 829:
                                  /turnout/829/cmd  ──────────────▶ "NORMAL (REVERSE)"
-                                 /turnout/827/cmd  ──────────────▶ "NORMAL (REVERSE)"
-                                 /turnout/827D/cmd ──────────────▶ "NORMAL (REVERSE)"
 
                               4. Points unlock & begin moving:
                                  /turnout/829/state ◀──────────── "(NORMAL) (REVERSE)" (In Transit)
-   codelines/.../indications ◀── "(829NWK) (829RWK)"
-   (Panel N & R lamps go dark)
+   .../Corporal/indications ◀─ "CHART 85973c19 (829NWK) (829RWK) (827WLK) (827WLQK)
+                                (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK)
+                                (1MCK) (827T1K) (829T1K)"
+   (Panel 829 N & R lamps go dark)
 
                               5. Points lock in correspondence:
                                  /turnout/829/state  ◀──────────── "NORMAL (REVERSE)"
-                                 /turnout/827/state  ◀──────────── "NORMAL (REVERSE)"
-                                 /turnout/827D/state ◀──────────── "NORMAL (REVERSE)"
-                                 -> Vital Logic ANDs 827 + 827D -> 827NWKR picks
+                                 -> 829NWKR picks
 
                               6. Route solves to APPROACH (next signal at Christopher is STOP):
                                  /signalmast/830WAB/cmd ─────────▶ "APPROACH"
@@ -63,18 +63,18 @@ Dispatcher Office             Codeline (Vital Logic)              Smart Applianc
                               7. Mast lights Yellow/Red (per rulebook) & confirms:
                                  /signalmast/830WAB/state ◀─────── "APPROACH"
                                  (Vital Logic sees state != STOP -> RGKR down, HR up)
-   codelines/.../indications ◀── "827NWK (827RWK)
-                                  829NWK (829RWK)
-                                  828WGK 830WGK"
-   (Panel switch & signal lamps light)
+   .../Corporal/indications ◀─ "CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK)
+                                828WGK (828EGK) (828TEK) 830WGK (830EGK) (830TEK)
+                                (1MCK) (827T1K) (829T1K)"
+   (Panel 829 Normal, 827 Locked, and 828/830 Left lamps light)
 ```
 
 ### APB Tumble-Down & Signal Cancellation
 
-- **Independent Switch & Derail Correspondence**: Because `827D` is its own [`Appliance:TURNOUT`](appliances/README.Appliances.md#applianceturnout) endpoint, Codeline commands `827` and `827D` separately and ANDs both `/state` confirmations (`NORMAL (REVERSE)`) before `827NWKR` picks.
+- **Electric Switch Lock & Dependent Derail**: Because `lock:827` is an [`Appliance:CONTROL`](appliances/README.Appliances.md#appliancecontrol) electric lock and `827D` is an independent [`Appliance:TURNOUT`](appliances/README.Appliances.md#applianceturnout) derail, Codeline verifies both `(SW1)` (lock closed) and `NORMAL (REVERSE)` (derail in derailing position) before clearing any mainline move through `827T1`.
 - **Approach Upgrade (`831WA`) While the Train Is in `834T`**: With `832T` vacant (`(ACTIVE)`) and opposing signals `830EAB`/`828EA` at `STOP`, Corporal publishes `/signalmast/830WAB/apb` → **`HOME DISTANT`** (`DISTANT` asserts because `830WAB/state` is `APPROACH`). Permissive mast **`831WA`** (composing [`Cluster:APB`](clusters/README.Clusters.md#clusterapb)) sees `HOME DISTANT` plus `832T == (ACTIVE)` and upgrades from `APPROACH` to **`CLEAR`**.
 - **Train Enters `832T` (Rear Protection & Directional Stick)**: When the freight passes `831WA`, `/sensor/832T/state` publishes **`ACTIVE`**. `831WA` immediately drops to `STOP`, sets its directional stick (`apb.stick = true`), and—once `834T` behind the caboose clears—publishes `HOME (DISTANT)` on `/signalmast/831WA/apb` so a following westbound train can advance to `833WA` on `APPROACH`.
-- **Dispatcher Cancels `830WAB` (`HS`) Before Arrival**: If the dispatcher centers Signal Lever `830` and presses `CODE`, the office sends `(830WGS) (830EGS) 830HS` and Codeline sends `/signalmast/830WAB/cmd` ← `"STOP"`. Codeline waits until `/signalmast/830WAB/state` physically confirms `"STOP"` (`RGKR` picks) before starting its vital **Time Element Relay (`TER`)** countdown and transmitting `(830WGK) 830TEK` to the office—keeping `829WLR` locked until the timer expires.
+- **Dispatcher Cancels `830WAB` (`HS`) Before Arrival**: If the dispatcher centers Signal Lever `830` and presses `CODE`, the office sends the complete control frame `CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) (830WGS) (830EGS) 830HS (1MCS)` and Codeline sends `/signalmast/830WAB/cmd` ← `"STOP"`. Codeline waits until `/signalmast/830WAB/state` physically confirms `"STOP"` (`RGKR` picks) before starting its vital **Time Element Relay (`TER`)** countdown and publishing the complete indication frame `CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) 828WGK (828EGK) (828TEK) (830WGK) (830EGK) 830TEK (1MCK) (827T1K) (829T1K)`—illuminating `830TEK` and keeping `829WLR` locked until the timer expires.
 
 ---
 

@@ -55,7 +55,7 @@ Below the **Smart Appliance Interface**, every endpoint exposes the same typed a
 
 Keeping the two interfaces distinct preserves prototype fidelity at the office without leaking relay jargon into generic hardware—while reusing the exact same transport/encoding separation on both seams:
 
-- **Code Line Interface (Office ↔ Vital Field Logic)**: Carries non-vital, atomic office control packets (`827NWS (827RWS) 829NWS (829RWS) 828WGS 830WGS`) from free-moving CTC levers down to the field station, and verified office indications (`827NWK (827RWK) 828WGK 830WGK 830TEK`) back up to light panel jewels. The office console never knows how many masts stand at a control point, how many heads a mast carries, or how route equations are wired.
+- **Code Line Interface (Office ↔ Vital Field Logic)**: Carries non-vital, complete, atomic station control frames (`CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) 830WGS (830EGS) (830HS) (1MCS)`) from free-moving CTC levers down to the field station, and verified complete station indication frames (`CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) 828WGK (828EGK) (828TEK) 830WGK (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)`) back up to light panel jewels. The office console never knows how many masts stand at a control point, how many heads a mast carries, or how route equations are wired.
 - **Smart Appliance Interface (Vital Field Logic / Office Panels ↔ Hardware)**: Translates solved vital outputs and panel lamp frames into typed, hardware-neutral commands (`setAlignment(NORMAL)`, `setIndication(APPROACH)`, `setLamps(...)` — encoded on MQTT as `NORMAL (REVERSE)`, `APPROACH`, `LAMP1 (LAMP2)`) and consumes closed-loop physical state confirmations before advancing any vital sequence.
 
 ---
