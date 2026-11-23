@@ -1,0 +1,23 @@
+{
+  "$comment": "Cluster:TURNOUT. Source: docs/clusters/README.Clusters.md. setAlignment is operational: accepted ONLINE and OFFLINE, so it carries no gate.",
+  "cluster": "TURNOUT",
+  "prefix": "turnout",
+  "enums": {
+    "TurnoutCommand": { "values": ["NORMAL", "REVERSE", "UNCHANGED"] },
+    "TurnoutState":   { "values": ["NORMAL", "REVERSE", "IN_TRANSIT"] },
+    "FeedbackRegime": { "values": ["TWO_CONTACT", "ONE_CONTACT", "SIMULATED"] }
+  },
+  "commands": [
+    { "name": "setAlignment", "params": [ { "name": "cmd", "type": "TurnoutCommand" } ] }
+  ],
+  "state": [
+    { "name": "alignment", "type": "TurnoutState" }
+  ],
+  "events": [
+    { "name": "FaultEvent", "fault_types": ["SHORTED_CONTACTS"] }
+  ],
+  "attributes": [
+    { "name": "feedback_regime", "type": "FeedbackRegime", "persistence": "nv_config", "access": "VITAL", "default": "TWO_CONTACT" },
+    { "name": "sim_transit_ms",  "type": "duration_ms",    "persistence": "nv_config", "access": "VITAL", "default": 1000 }
+  ]
+}

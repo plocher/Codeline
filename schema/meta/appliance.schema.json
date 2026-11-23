@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Smart Appliance composition (schema/appliances/*.json)",
+  "type": "object",
+  "required": ["appliance", "role", "clusters"],
+  "additionalProperties": false,
+  "properties": {
+    "$comment": { "type": "string" },
+    "appliance": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+    "role": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "clusters": {
+      "type": "object",
+      "required": ["required"],
+      "additionalProperties": false,
+      "properties": {
+        "required": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+        "optional": { "type": "array", "uniqueItems": true, "items": { "type": "string" } }
+      }
+    },
+    "defaults": { "type": "object", "additionalProperties": { "type": ["boolean", "integer", "string"] } },
+    "startup": { "type": "string" }
+  }
+}

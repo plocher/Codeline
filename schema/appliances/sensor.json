@@ -1,0 +1,16 @@
+{
+  "$comment": "Appliance:SENSOR. Source: docs/appliances/README.Appliances.md. The catalog requires HOLDOFF on optical/IR detectors and omits it on current-transformer detectors; CP Corporal's track circuits carry hold_ms=1500 in the project file, so this slice is the HOLDOFF variant (a hardware-holdoff detector runs it with make_ms=0, dropout_ms=0). GROUPS is not part of the M2 slice.",
+  "appliance": "SENSOR",
+  "role": "sensor",
+  "clusters": {
+    "required": [
+      "MAINTENANCE",
+      "SENSOR",
+      "HOLDOFF"
+    ],
+    "optional": [
+      "GROUPS"
+    ]
+  },
+  "startup": "Evaluate physical detection under the active holdoff.* parameters and report active."
+}

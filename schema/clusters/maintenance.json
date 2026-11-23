@@ -1,0 +1,38 @@
+{
+  "$comment": "Cluster:MAINTENANCE. Source: docs/clusters/README.Clusters.md.",
+  "cluster": "MAINTENANCE",
+  "prefix": "maintenance",
+  "enums": {
+    "IdentifyMode": { "values": ["ON", "OFF", "PULSE"] }
+  },
+  "commands": [
+    { "name": "identify",         "gate": "anytime",
+      "params": [ { "name": "mode", "type": "IdentifyMode" }, { "name": "duration_ms", "type": "duration_ms", "optional": true } ] },
+    { "name": "exportAttributes", "gate": "anytime", "params": [] },
+    { "name": "exportConfig",     "gate": "anytime", "params": [] },
+    { "name": "offline",          "gate": "anytime", "params": [] },
+    { "name": "online",           "gate": "anytime", "params": [] },
+    { "name": "setAttribute",     "gate": "by_access",
+      "params": [ { "name": "path", "type": "AttrPath" }, { "name": "op", "type": "SetOp" }, { "name": "value", "type": "AttrValue" } ] },
+    { "name": "clearAttribute",   "gate": "by_access", "params": [ { "name": "path", "type": "AttrPath" } ] },
+    { "name": "clearFault",       "gate": "offline",  "params": [] },
+    { "name": "importConfig",     "gate": "offline",  "params": [ { "name": "config", "type": "ConfigMap" } ] },
+    { "name": "cycle",            "gate": "offline",
+      "params": [ { "name": "count", "type": "uint16" }, { "name": "dwell_ms", "type": "duration_ms" } ] }
+  ],
+  "events": [
+    { "name": "FaultEvent",       "payload": [ { "name": "type", "type": "FaultType" }, { "name": "detail", "type": "string", "optional": true } ] },
+    { "name": "OfflineEvent",     "payload": [] },
+    { "name": "OnlineEvent",      "payload": [] },
+    { "name": "UnavailableEvent", "payload": [], "transport_only": true },
+    { "name": "AttributesEvent",  "payload": [ { "name": "data", "type": "AttributeMap" } ] },
+    { "name": "ConfigEvent",      "payload": [ { "name": "data", "type": "ConfigMap" } ] }
+  ],
+  "attributes": [
+    { "name": "offline",     "type": "bool",   "persistence": "volatile", "access": "RO",    "default": false },
+    { "name": "id",          "type": "bool",   "persistence": "volatile", "access": "RO",    "default": false },
+    { "name": "faulted",     "type": "bool",   "persistence": "volatile", "access": "RO",    "default": false },
+    { "name": "fault_count", "type": "uint32", "persistence": "nv_state", "access": "RO",    "default": 0, "clearable": true },
+    { "name": "post",        "type": "bool",   "persistence": "nv_config", "access": "VITAL", "default": true }
+  ]
+}

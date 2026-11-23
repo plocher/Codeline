@@ -1,0 +1,22 @@
+{
+  "$comment": "Rulebook SP-1990 for one-, two-, and three-head masts (Corporal and Christopher). Sources: tools/spcoast.layout.json (TypeD searchlight heads present STOP, APPROACH, ADVANCE_APPROACH, CLEAR and DARK; Corporal 830WAB/830EAB have two heads, Christopher 814EABC has three, others one), docs/Walkthrough.md step 7 (two-head APPROACH = Yellow over Red), and FieldUnit SignalAspectPolicy::sp1985 / defaultRoute (third head RED for normal and primary-diverging routes). One head: STOP red, APPROACH yellow, ADVANCE_APPROACH flashing yellow, CLEAR green. Two heads: top head (head.A) carries the one-head aspect over a red head.B; DIVERGING_APPROACH red over yellow and DIVERGING_CLEAR red over green. Three heads: the two-head aspect over a red head.C. Not covered (a mast shows and reports STOP): RESTRICTING, DIVERGING_RESTRICTING, APPROACH_MEDIUM, and DIVERGING_* on one head.",
+  "rulebook": "SP-1990",
+  "rows": [
+    { "indication": "STOP",               "heads": ["RED"] },
+    { "indication": "APPROACH",           "heads": ["YELLOW"] },
+    { "indication": "ADVANCE_APPROACH",   "heads": ["flashing YELLOW"] },
+    { "indication": "CLEAR",              "heads": ["GREEN"] },
+    { "indication": "STOP",               "heads": ["RED", "RED"] },
+    { "indication": "APPROACH",           "heads": ["YELLOW", "RED"] },
+    { "indication": "ADVANCE_APPROACH",   "heads": ["flashing YELLOW", "RED"] },
+    { "indication": "CLEAR",              "heads": ["GREEN", "RED"] },
+    { "indication": "DIVERGING_APPROACH", "heads": ["RED", "YELLOW"] },
+    { "indication": "DIVERGING_CLEAR",    "heads": ["RED", "GREEN"] },
+    { "indication": "STOP",               "heads": ["RED", "RED", "RED"] },
+    { "indication": "APPROACH",           "heads": ["YELLOW", "RED", "RED"] },
+    { "indication": "ADVANCE_APPROACH",   "heads": ["flashing YELLOW", "RED", "RED"] },
+    { "indication": "CLEAR",              "heads": ["GREEN", "RED", "RED"] },
+    { "indication": "DIVERGING_APPROACH", "heads": ["RED", "YELLOW", "RED"] },
+    { "indication": "DIVERGING_CLEAR",    "heads": ["RED", "GREEN", "RED"] }
+  ]
+}

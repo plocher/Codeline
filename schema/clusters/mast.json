@@ -1,0 +1,25 @@
+{
+  "$comment": "Cluster:MAST. Source: docs/clusters/README.Clusters.md. setIndication and setLit are operational, so they carry no gate. SignalIndication lists the nine words in the order the docs list them; that order is NOT a permissiveness ranking. mast.rulebook is a string in the docs; here it is a closed enum of the rulebooks that have a table under schema/rulebooks/, so a mast can never be set to a rulebook it cannot display. mast.heads stops at 3, the most heads every rulebook has rows for (the generator requires a STOP row for each allowed count). mast.flash_hz stops at 10 Hz (the docs give no bound; a railroad flash is about 1 Hz) so the half period is never below 50 ms.",
+  "cluster": "MAST",
+  "prefix": "mast",
+  "enums": {
+    "Rulebook": { "values": ["SP-1990"] },
+    "SignalIndication": {
+      "values": ["STOP", "RESTRICTING", "DIVERGING_RESTRICTING", "APPROACH", "DIVERGING_APPROACH", "ADVANCE_APPROACH", "APPROACH_MEDIUM", "DIVERGING_CLEAR", "CLEAR"]
+    }
+  },
+  "commands": [
+    { "name": "setIndication", "params": [ { "name": "indication", "type": "SignalIndication" }, { "name": "lit", "type": "bool", "optional": true } ] },
+    { "name": "setLit",        "params": [ { "name": "lit", "type": "bool" } ] }
+  ],
+  "state": [
+    { "name": "indication", "type": "SignalIndication" },
+    { "name": "lit",        "type": "bool" }
+  ],
+  "events": [],
+  "attributes": [
+    { "name": "rulebook", "type": "Rulebook", "persistence": "nv_config", "access": "VITAL", "default": "SP-1990" },
+    { "name": "heads",    "type": "uint8",    "persistence": "nv_config", "access": "VITAL", "default": 1, "min": 1, "max": 3 },
+    { "name": "flash_hz", "type": "hz",       "persistence": "nv_config", "access": "RW",    "default": 1.0, "min": 0.01, "max": 10 }
+  ]
+}

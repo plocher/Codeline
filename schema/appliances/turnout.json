@@ -1,0 +1,19 @@
+{
+  "$comment": "Appliance:TURNOUT. Source: docs/appliances/README.Appliances.md. Optional POSITION and GROUPS are not part of the M1a slice.",
+  "appliance": "TURNOUT",
+  "role": "turnout",
+  "clusters": {
+    "required": [
+      "MAINTENANCE",
+      "TURNOUT"
+    ],
+    "optional": [
+      "POSITION",
+      "GROUPS"
+    ]
+  },
+  "defaults": {
+    "maintenance.post": false
+  },
+  "startup": "Read point contacts without energizing the motor and report alignment."
+}

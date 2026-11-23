@@ -1,0 +1,11 @@
+{
+  "$comment": "Cluster:SENSOR. Source: docs/clusters/README.Clusters.md. Read-only: no commands. active is the filtered detection (after Cluster:HOLDOFF when composed).",
+  "cluster": "SENSOR",
+  "prefix": "sensor",
+  "commands": [],
+  "state": [
+    { "name": "active", "type": "bool" }
+  ],
+  "events": [],
+  "attributes": []
+}

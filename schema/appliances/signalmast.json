@@ -1,0 +1,16 @@
+{
+  "$comment": "Appliance:SIGNALMAST. Source: docs/appliances/README.Appliances.md. Per-head sub-components (head.A..C composing ON/OFF, COLOR, POSITION, DIMMING) and optional APB and GROUPS are not part of the M2 slice's typed API.",
+  "appliance": "SIGNALMAST",
+  "role": "signalmast",
+  "clusters": {
+    "required": [
+      "MAINTENANCE",
+      "MAST"
+    ],
+    "optional": [
+      "GROUPS",
+      "APB"
+    ]
+  },
+  "startup": "Initialize all heads to STOP and report { indication: STOP, lit: true }."
+}

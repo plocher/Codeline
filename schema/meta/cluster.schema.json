@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Smart Appliance capability cluster (schema/clusters/*.json)",
+  "type": "object",
+  "required": ["cluster", "prefix", "commands", "events", "attributes"],
+  "additionalProperties": false,
+  "properties": {
+    "$comment": { "type": "string" },
+    "cluster": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+    "prefix": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "enums": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["values"],
+        "properties": {
+          "values": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$" } }
+        }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "params"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "gate": { "enum": ["anytime", "offline", "by_access"] },
+          "params": { "type": "array", "items": { "$ref": "#/$defs/field" } }
+        }
+      }
+    },
+    "state": { "type": "array", "items": { "$ref": "#/$defs/field" } },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "pattern": "Event$" },
+          "payload": { "type": "array", "items": { "$ref": "#/$defs/field" } },
+          "fault_types": { "type": "array", "items": { "type": "string" } },
+          "transport_only": { "type": "boolean" }
+        }
+      }
+    },
+    "attributes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "persistence", "access", "default"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "type": { "type": "string" },
+          "persistence": { "enum": ["volatile", "nv_config", "nv_state"] },
+          "access": { "enum": ["RO", "RW", "VITAL"] },
+          "default": { "type": ["boolean", "number", "string"] },
+          "min": { "type": "number" },
+          "max": { "type": "number" },
+          "clearable": { "type": "boolean" },
+          "channels": { "enum": ["BitVector"] }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "field": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "optional": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "$comment": "Cluster:HOLDOFF. Source: docs/clusters/README.Clusters.md. Attributes only; it shapes Cluster:SENSOR's active.",
+  "cluster": "HOLDOFF",
+  "prefix": "holdoff",
+  "commands": [],
+  "events": [],
+  "attributes": [
+    { "name": "make_ms",    "type": "duration_ms", "persistence": "nv_config", "access": "VITAL", "default": 0 },
+    { "name": "dropout_ms", "type": "duration_ms", "persistence": "nv_config", "access": "VITAL", "default": 1500 }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "$comment": "Canonical types shared by every cluster. Source: docs/clusters/README.Clusters.md, 'Canonical Types & Access Classes' and the 'FAULT <TYPE> Registry'. Only the scalars this slice uses are listed.",
+  "scalars": {
+    "bool":        { "max": 1 },
+    "uint8":       { "max": 255 },
+    "uint16":      { "max": 65535 },
+    "uint32":      { "max": 4294967295 },
+    "duration_ms": { "max": 4294967295 },
+    "hz":          { "max": 65535, "scale": 100, "$comment": "float32 in the docs; carried as hundredths of a hertz (1.00 Hz = 100), written with two decimals on the wire." }
+  },
+  "composites": {
+    "BitVector": { "width": 32, "$comment": "docs/bindings/Cpp.md: up to 32 channels. The one source of the width: attributes marked \"channels\": \"BitVector\" are bounded by it, and codeline/appliance/IControl.h's BitVector::kMaxCount is checked against the generated kBitVectorWidth." }
+  },
+  "persistence": ["volatile", "nv_config", "nv_state"],
+  "access": ["RO", "RW", "VITAL"],
+  "enums": {
+    "SetOp": {
+      "values": ["ASSIGN", "INCREMENT", "DECREMENT"]
+    },
+    "FaultType": {
+      "$comment": "Registry order. Each value names the cluster that declares it.",
+      "values": ["HW_ERROR", "CONFIG_ERROR", "OVERCURRENT", "STALL", "SHORTED_CONTACTS", "VITAL_ERROR", "NON_VITAL_ERROR"],
+      "declared_by": {
+        "HW_ERROR": "MAINTENANCE",
+        "CONFIG_ERROR": "MAINTENANCE",
+        "OVERCURRENT": "POSITION",
+        "STALL": "POSITION",
+        "SHORTED_CONTACTS": "TURNOUT",
+        "VITAL_ERROR": "MAINTENANCE",
+        "NON_VITAL_ERROR": "MAINTENANCE"
+      }
+    },
+    "ColorName": {
+      "$comment": "The named colors of a ColorValue: Cluster:COLOR color.palette plus NONE (dark), spelled as in MQTT.md section 2. Used by the IMastDriver port for per-head aspects.",
+      "values": ["RED", "YELLOW", "GREEN", "LUNAR", "AMBER", "WHITE", "BLUE", "PURPLE", "PLUM", "NONE"]
+    }
+  }
+}

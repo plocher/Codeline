@@ -1,0 +1,16 @@
+{
+  "$comment": "Appliance:CONTROL. Source: docs/appliances/README.Appliances.md. The catalog marks BUTTON optional; this slice is the electric-lock profile (lock:827: 1 MAINTAINED input, 1 LEVEL button, 1 output), which composes it, so it is listed as required here. Per-lamp sub-components (lamp.1..M) and GROUPS are not part of the M2 slice.",
+  "appliance": "CONTROL",
+  "role": "control",
+  "clusters": {
+    "required": [
+      "MAINTENANCE",
+      "LEVER",
+      "BUTTON"
+    ],
+    "optional": [
+      "GROUPS"
+    ]
+  },
+  "startup": "Configure lever.inputs, button.inputs and lever.outputs from NV config, extinguish every lamp, read the switch contacts and report switches."
+}

@@ -1,0 +1,70 @@
+{
+  "$comment": "MQTT binding for the M1a slice. Source: docs/bindings/MQTT.md sections 1-4.",
+  "topics": {
+    "cmd":   { "retained": false },
+    "state": { "retained": true },
+    "maint": { "retained": false },
+    "event": { "retained": false },
+    "all":   { "retained": false, "$comment": "{channel}/all, not under {appliance}" }
+  },
+  "will": {
+    "$comment": "MQTT.md section 4.4: retained UNAVAILABLE on {appliance}/state on link loss.",
+    "topic": "state",
+    "payload": "UNAVAILABLE",
+    "retained": true
+  },
+  "reconnect": {
+    "$comment": "Owner ruling: after a link loss a connection retries connect() first after initial_ms, then each wait is multiplied by factor up to max_ms, until connected; success resets it. Each connection's waits are lengthened by a deterministic skew of 0..skew_permille per mille, derived from its client id (FNV-1a 32-bit hash mod (skew_permille + 1)), so connections that lost the broker together do not retry together. With these values retries settle at once every 16..20 s.",
+    "initial_ms": 1000,
+    "factor": 2,
+    "max_ms": 16000,
+    "skew_permille": 250
+  },
+  "broadcast": {
+    "group_prefix": "GROUP",
+    "commands": ["exportConfig", "identify"],
+    "jitter_max_ms": 250
+  },
+  "bool": { "true": "true", "false": "false" },
+  "enums": {
+    "SetOp": { "ASSIGN": "=", "INCREMENT": "+=", "DECREMENT": "-=" }
+  },
+  "clusters": {
+    "MAINTENANCE": {
+      "commands": {
+        "identify":         "IDENTIFY",
+        "exportAttributes": "EXPORT ATTRIBUTES",
+        "exportConfig":     "EXPORT CONFIG",
+        "offline":          "OFFLINE",
+        "online":           "ONLINE",
+        "setAttribute":     "SET",
+        "clearAttribute":   "CLEAR",
+        "clearFault":       "CLEAR FAULT",
+        "importConfig":     "IMPORT",
+        "cycle":            "CYCLE"
+      },
+      "events": {
+        "FaultEvent":       "FAULT",
+        "OfflineEvent":     "OFFLINE",
+        "OnlineEvent":      "ONLINE",
+        "UnavailableEvent": null,
+        "AttributesEvent":  "ATTRIBUTES",
+        "ConfigEvent":      "CONFIG"
+      }
+    },
+    "SENSOR": { "$comment": "MQTT.md section 3: /state ACTIVE | (ACTIVE).", "active": "ACTIVE" },
+    "MAST": { "$comment": "MQTT.md sections 2-3: /cmd <INDICATION> [LIT|(LIT)] | LIT | (LIT); /state <INDICATION> | <INDICATION> (LIT). Indication words are the SignalIndication names.", "lit": "LIT" },
+    "LEVER": { "$comment": "MQTT.md sections 2-3: /state SW1 (SW2) ... SW<N>; /cmd LAMP1 (LAMP2) ... LAMP<M>; all-or-nothing.", "switch": "SW", "lamp": "LAMP" },
+    "BUTTON": {
+      "$comment": "MQTT.md section 3: a press is BTN<k>, a release (BTN<k>). The noun is the prefix; the channel and the parentheses are the codec's.",
+      "events": {
+        "ButtonEvent": "BTN"
+      }
+    },
+    "TURNOUT": {
+      "pair": ["NORMAL", "REVERSE"],
+      "TurnoutCommand": { "NORMAL": [true, false], "REVERSE": [false, true], "UNCHANGED": [false, false] },
+      "TurnoutState":   { "NORMAL": [true, false], "REVERSE": [false, true], "IN_TRANSIT": [false, false] }
+    }
+  }
+}

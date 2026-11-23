@@ -1,0 +1,16 @@
+{
+  "$comment": "Cluster:BUTTON. Source: docs/clusters/README.Clusters.md. No commands and no state: presses arrive only as ButtonEvent. inputs is a channel count of a BitVector: the generator bounds it by its width in schema/types.json (docs/bindings/Cpp.md).",
+  "cluster": "BUTTON",
+  "prefix": "button",
+  "enums": {
+    "ButtonMode": { "values": ["ONESHOT_RELEASE", "LEVEL"] }
+  },
+  "commands": [],
+  "events": [
+    { "name": "ButtonEvent", "payload": [ { "name": "channel", "type": "uint8" }, { "name": "pressed", "type": "bool" } ] }
+  ],
+  "attributes": [
+    { "name": "inputs", "type": "uint8",      "persistence": "nv_config", "access": "VITAL", "default": 1, "channels": "BitVector" },
+    { "name": "mode",   "type": "ButtonMode", "persistence": "nv_config", "access": "VITAL", "default": "ONESHOT_RELEASE" }
+  ]
+}

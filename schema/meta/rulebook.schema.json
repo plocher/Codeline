@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cluster:MAST rulebook table (schema/rulebooks/*.json)",
+  "type": "object",
+  "required": ["rulebook", "rows"],
+  "additionalProperties": false,
+  "properties": {
+    "$comment": { "type": "string" },
+    "rulebook": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$" },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["indication", "heads"],
+        "additionalProperties": false,
+        "properties": {
+          "indication": { "type": "string", "pattern": "^[A-Z][A-Z_]*$" },
+          "heads": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^(flashing )?[A-Z]+$" } }
+        }
+      }
+    }
+  }
+}

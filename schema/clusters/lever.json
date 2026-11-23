@@ -1,0 +1,20 @@
+{
+  "$comment": "Cluster:LEVER. Source: docs/clusters/README.Clusters.md. setLamps is operational, so it carries no gate. BitVector is the canonical composite (docs/bindings/Cpp.md: up to 32 channels), so inputs and outputs are channel counts of a BitVector: the generator bounds them by its width in schema/types.json, although the docs type them uint8.",
+  "cluster": "LEVER",
+  "prefix": "lever",
+  "enums": {
+    "InputStyle": { "values": ["MAINTAINED", "MOMENTARY_2", "MOMENTARY_1", "ROTARY"] }
+  },
+  "commands": [
+    { "name": "setLamps", "params": [ { "name": "lamps", "type": "BitVector" } ] }
+  ],
+  "state": [
+    { "name": "switches", "type": "BitVector" }
+  ],
+  "events": [],
+  "attributes": [
+    { "name": "inputs",      "type": "uint8",      "persistence": "nv_config", "access": "VITAL", "default": 1, "min": 1, "channels": "BitVector" },
+    { "name": "outputs",     "type": "uint8",      "persistence": "nv_config", "access": "VITAL", "default": 0, "channels": "BitVector" },
+    { "name": "input_style", "type": "InputStyle", "persistence": "nv_config", "access": "VITAL", "default": "MAINTAINED" }
+  ]
+}
