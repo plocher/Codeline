@@ -120,7 +120,7 @@ SCENARIO("CP Corporal derived from the project file is the hand-written referenc
   for (const auto& l : spec.locks) derived.locks.push_back(l.name);
   for (const auto& l : spec.levers) derived.levers.push_back(l.name);
   for (const auto& m : spec.masts) derived.masts.push_back(m.name);
-  for (const auto& c : spec.calls) derived.calls.push_back(c);
+  for (const auto& c : spec.calls) derived.calls.push_back(c.name);
   for (const auto& r : spec.routes) derived.routes.push_back(r.name);
 
   testing::CorporalPlant ref;  // its members are the reference's names

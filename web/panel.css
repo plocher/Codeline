@@ -1,0 +1,213 @@
+/* A plain, legible CTC machine: dark panel, a column per lever number, lamps above each lever,
+   CODE at the foot of a station's columns; a model board as a schematic track line with lamps. */
+
+:root {
+  color-scheme: dark;
+  --ground: #14181a;
+  --panel: #1f2a25;
+  --plate: #0d1011;
+  --line: #3a4640;
+  --text: #dfe5e0;
+  --dim: #8c9891;
+  --rail: #6f7a74;
+  --bad: #ffb224;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  display: flex; flex-direction: column;
+  background: var(--ground); color: var(--text);
+  font: 13px/1.35 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+h1, h2, h3 { margin: 0; font-weight: 600; }
+h1 { font-size: 16px; letter-spacing: .06em; }
+h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .08em; }
+h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); margin: 10px 0 4px; }
+code, pre, .term, .key, td.state, td.cmd, td.event, .lever-plate, .when { font-family: ui-monospace, Menlo, Consolas, monospace; }
+button, select, input {
+  font: inherit; color: var(--text); background: #2b3632; border: 1px solid var(--line); border-radius: 3px; padding: 2px 8px;
+}
+button { cursor: pointer; }
+button:hover { background: #36443e; }
+input[type=number] { width: 7.5em; }
+.hint, .note { color: var(--dim); font-size: 12px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.problem { margin: 12px; padding: 10px; border: 1px solid var(--bad); color: var(--bad); }
+
+/* ---- header: broker status and the clock */
+header {
+  flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px;
+  padding: 6px 12px; background: var(--plate); border-bottom: 1px solid var(--line);
+}
+.links, .clock { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.clock-title { color: var(--dim); text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
+.link { padding: 1px 8px; border-radius: 9px; border: 1px solid var(--line); color: var(--dim); }
+.link.connected { color: #7bd88f; border-color: #2f6b3e; }
+.link.connecting { color: var(--bad); }
+.link.disconnected, .link.closed { color: #ff6b6b; border-color: #7a2e2e; }
+.clock-cell { font-variant-numeric: tabular-nums; margin-left: 8px; padding: 1px 6px; border: 1px solid var(--line); border-radius: 3px; }
+.clock-cell.paused { color: var(--bad); border-color: var(--bad); }
+.clock-none { color: var(--dim); margin-left: 8px; }
+
+/* ---- the two parts: office on top (always visible), field below */
+#office { flex: none; max-height: 72vh; min-height: 120px; resize: vertical; overflow: auto; padding: 8px 12px 10px; border-bottom: 3px solid var(--line); }
+#field { flex: 1 1 0; min-height: 0; overflow: auto; padding: 8px 12px 20px; background: #101314; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-bottom: 6px; }
+
+/* ---- lamps */
+.jewel { /* sized for a 2-inch column */
+  display: inline-block; width: 13px; height: 13px; border-radius: 50%;
+  background: color-mix(in srgb, var(--lamp, #ccc) 18%, #000); border: 1px solid #000;
+  box-shadow: inset 0 0 2px #000;
+}
+.jewel.lit { background: var(--lamp, #fff); box-shadow: 0 0 7px 1px var(--lamp, #fff); }
+.jewel.flash { animation: jewel-flash 1s steps(1) infinite; }
+@keyframes jewel-flash { 50% { background: color-mix(in srgb, var(--lamp, #ccc) 18%, #000); box-shadow: none; } }
+.lamp-red { --lamp: #ff4d4d; }
+.lamp-yellow { --lamp: #ffd84d; }
+.lamp-amber { --lamp: #ffab2e; }
+.lamp-green { --lamp: #39e36b; }
+.lamp-white { --lamp: #f4f4ea; }
+.lamp-blue { --lamp: #5aa9ff; }
+.lamp { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; min-width: 26px; }
+.lamp-label { font-size: 9px; color: var(--dim); letter-spacing: .04em; }
+
+/* ---- the CTC machine: the board across the top, a lever column under each 1/N of it */
+#machine { overflow-x: auto; padding-bottom: 4px; }
+.machine-frame { min-width: 760px; background: var(--panel); border: 1px solid #000; border-radius: 4px; }
+.columns { display: grid; }
+.column { display: flex; flex-direction: column; align-items: stretch; background: #19221e; border-left: 1px solid #0d1210; padding: 2px 1px 4px; min-width: 0; }
+.column.first { border-left: 2px solid #000; }
+.column-plate { text-align: center; font-size: 9px; color: var(--dim); border-bottom: 1px solid var(--line); padding-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.row-call { height: 40px; }
+.row-switch, .row-signal { height: 62px; }
+.row-code { height: 30px; }
+.row-call-lamp { height: 26px; }
+.lever { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 2px 1px; border: 1px solid transparent; border-radius: 3px; }
+.lever.out { border-color: var(--bad); background: rgba(255, 178, 36, .09); }
+.lamps { display: flex; gap: 2px; justify-content: center; align-items: flex-end; }
+.lamps-middle { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.lamps-middle .lamp-label { display: none; }                  /* the plate under it names the lever; the lamp is its STOP */
+.lamps .lamp { min-width: 20px; }
+.positions { display: flex; }
+.position { border-radius: 0; padding: 1px 4px; min-width: 20px; font-size: 10px; background: #111614; color: var(--dim); }
+.position:first-child { border-radius: 9px 0 0 9px; }
+.position:last-child { border-radius: 0 9px 9px 0; }
+.position.on { background: #d8ddd9; color: #000; font-weight: 700; }
+.lever-plate { font-size: 10px; font-weight: 700; background: var(--plate); padding: 0 5px; border-radius: 2px; }
+.code { background: #7a1f1f; border-color: #000; font-weight: 700; letter-spacing: .06em; border-radius: 11px; padding: 1px 9px; font-size: 11px; }
+.code:hover { background: #a02a2a; }
+#code-all { background: #7a1f1f; border-color: #000; font-weight: 600; }
+.columns.foot { border-top: 1px solid #000; }
+.station { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 2px 4px; min-width: 0; border-left: 2px solid #000; }
+.station-status { font-size: 10px; color: var(--dim); }
+.station-status.bad { color: var(--bad); }
+.column.pending .position { cursor: default; }
+.column.dark { background: #1c1a14; }
+button:disabled { opacity: .4; cursor: default; }
+.link.refused { color: var(--bad); border-color: var(--bad); }
+.clock-cell.gone { color: #ff6b6b; border-color: #7a2e2e; }
+.clock-hint { color: var(--bad); font-size: 12px; }
+
+/* ---- the model board */
+.board-holder { background: #0b0e0f; border-bottom: 2px solid #000; }
+.board { width: 100%; }
+.board .board-name { fill: #aab3ad; stroke: none; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.board .board-part.dark .el { opacity: .4; }
+.board .board-part.dark .board-name { fill: var(--bad); }
+
+.trackplan { display: block; max-width: 100%; height: auto; }
+.trackplan .el { fill: none; stroke: #5a645f; stroke-linecap: round; stroke-linejoin: round; }
+.trackplan text.el { fill: var(--dim); stroke: none; font-family: ui-monospace, Menlo, Consolas, monospace; }
+.trackplan .role-rail { stroke: var(--rail); }
+.trackplan .role-joint { stroke: #8f3a3a; }
+.trackplan circle.el { fill: #1a1f1d; stroke: #77817b; stroke-width: .25; }
+
+/* the board, lit from indications */
+.board .role-rail.unlined { stroke: #333b37; }
+.board .role-rail.unknown { stroke: #4a4f47; }
+.board .role-rail.lined { stroke: #c9d1cb; }
+.board .role-rail { stroke: #4a524e; }                       /* track no path reaches as the switches stand */
+/* A path from an entry, as the switches stand (never a cleared route): a cool tint with a soft glow. */
+.board .role-rail.traced { stroke: #7fb2c6; filter: drop-shadow(0 0 1.2px rgba(110, 190, 225, .85)); }
+/* The indicated position of a switch: bolder and thicker than anything else on the track. */
+.board .role-rail.lined, .board .role-rail.traced.lined { stroke: #f1f5f2; stroke-width: 3.6; filter: none; }
+.board .role-rail.occupied { stroke: var(--lamp); }
+.board circle.occupied, .board circle.lit { fill: var(--lamp); stroke: var(--lamp); }
+.board polyline.lit { stroke: var(--lamp); }
+/* A mast: red at stop. Not at stop it is left unlit: every mast of a lever and direction is
+   indicated together, so the lined path, not a colour, says which one a train is running on. */
+.board circle.role-head.stop { fill: #e0463c; stroke: #e0463c; }
+.board text.lit { fill: var(--lamp); }
+
+/* ---- field tabs */
+#tabs { display: flex; flex-wrap: wrap; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+.tab { border-radius: 4px 4px 0 0; border-bottom: none; background: #171c1b; color: var(--dim); padding: 4px 12px; }
+.tab.on { background: var(--panel); color: var(--text); font-weight: 600; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #555; margin-right: 6px; }
+.dot.connected { background: #39e36b; }
+.dot.connecting { background: var(--bad); }
+.dot.disconnected, .dot.closed { background: #ff4d4d; }
+.field-plan { background: #0b0e0f; border: 1px solid #000; border-radius: 4px; padding: 4px; max-width: 1100px; }
+.field-plan .trackplan { width: 100%; }
+
+.locals { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.local { border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; background: #141918; }
+.local-title { font-size: 11px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.local-row { display: flex; align-items: center; gap: 10px; }
+.local-switch { display: inline-flex; align-items: center; gap: 3px; }
+.local-name { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; margin-right: 2px; }
+.local button.on { background: #2f4a3a; color: #fff; border-color: #39e36b; }
+
+/* the field, coloured from the appliances' own /state */
+#field .el.live { cursor: pointer; }
+#field .role-rail { stroke: #333b37; }                       /* track with no appliance in this station */
+#field .role-rail.vacant { stroke: #c9d1cb; }
+#field .role-rail.occupied { stroke: #ff4d4d; }
+#field .role-rail.unknown { stroke: #7a6a3a; stroke-dasharray: 1.2 1.6; }
+#field .role-rail.unlined { opacity: .28; }
+#field .role-rail.moving { stroke-dasharray: 2 1.6; opacity: .7; }
+#field circle.vacant { fill: #1a1f1d; }
+#field circle.occupied, #field circle.is-occupied { fill: #ff4d4d; stroke: #ff4d4d; }
+#field circle.unknown { fill: #4a4330; }
+#field circle.is-stop { fill: #ff4d4d; }
+#field circle.is-caution { fill: #ffd84d; }
+#field circle.is-clear { fill: #39e36b; }
+#field circle.is-dark { fill: #000; }
+#field circle.is-lit { fill: #f4f4ea; stroke: #f4f4ea; }
+#field text.is-lit { fill: #f4f4ea; }
+#field circle.is-open { fill: #ffab2e; stroke: #ffab2e; }
+#field text.live { fill: var(--text); }
+
+.appliances { border-collapse: collapse; margin-top: 8px; }
+.appliances th { text-align: left; font-size: 11px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; padding: 2px 10px 2px 0; }
+.appliances td { padding: 2px 10px 2px 0; border-top: 1px solid #232b28; vertical-align: middle; }
+.appliances tr.gone td.state { color: #ff6b6b; }
+.appliances tr.silent td.state { color: var(--dim); }
+.appliances .acts button { margin-right: 4px; padding: 1px 6px; font-size: 12px; }
+.appliances .power { color: var(--dim); }
+pre { margin: 0; padding: 6px; background: #0b0e0f; border: 1px solid #000; border-radius: 4px; max-width: 1100px; overflow: auto; font-size: 12px; }
+pre.log { max-height: 260px; min-height: 2.5em; }
+
+/* ---- code line traffic */
+#traffic { max-height: 220px; overflow: auto; background: #0b0e0f; border: 1px solid #000; border-radius: 4px; padding: 2px 6px; }
+.frame { display: flex; gap: 8px; padding: 1px 0; border-bottom: 1px solid #171c1b; font-size: 12px; align-items: baseline; }
+.frame .when { color: var(--dim); flex: none; }
+.frame .who { flex: none; min-width: 84px; font-weight: 600; }
+.frame .way { flex: none; min-width: 92px; color: var(--dim); }
+.frame.control .way { color: #ffab2e; }
+.frame .retained { flex: none; font-size: 10px; color: var(--dim); border: 1px solid var(--line); border-radius: 3px; padding: 0 3px; }
+.frame .verdict { color: var(--bad); }
+.term { padding: 0 2px; border-radius: 2px; }
+.term.open { color: var(--dim); }
+.term.asserted { color: #fff; font-weight: 700; }
+.term.dropped { color: #6b756f; }
+.term.changed { background: #5a4a12; outline: 1px solid #b8962a; }
+
+/* ---- a half in a window of its own (?view=office | ?view=field), and the field folded away */
+body.field-only #office, body.office-only #field { display: none; }
+body.field-only #field-window, body.field-only #field-fold, body.office-only #office-window { display: none; }
+body.office-only #office, body.field-folded #office { flex: 1 1 0; max-height: none; resize: none; border-bottom: none; }
+body.field-folded #field { flex: none; overflow: hidden; padding-bottom: 8px; }
+body.field-folded #field > :not(.bar), body.field-folded #field .hint { display: none; }

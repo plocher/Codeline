@@ -36,6 +36,7 @@
 #include "codeline/core/TickClock.h"
 #include "codeline/engine/ElectricLock.h"
 #include "codeline/engine/Fact.h"
+#include "codeline/engine/MaintainerCall.h"
 #include "codeline/engine/Office.h"
 #include "codeline/engine/Route.h"
 #include "codeline/engine/SignalLever.h"
@@ -105,11 +106,18 @@ public:
     return masts_.emplace_back(name, mast);
   }
 
-  // A maintainer call. Not bound to an appliance in this slice (no LAMP
-  // binding yet): its indication repeats the stored control.
+  // A maintainer call lighting one Appliance:LAMP (MaintainerCall.h). Non-vital:
+  // no route reads it. Its indication is the lamp's own report.
+  void addMaintainerCall(std::string_view name, ILamp& lamp) {
+    if (refuse()) return;
+    calls_.emplace_back(name, lamp);
+  }
+
+  // A maintainer call with no lamp in the plant: its indication repeats the
+  // stored control.
   void addMaintainerCall(std::string_view name) {
     if (refuse()) return;
-    calls_.push_back(Call{std::string(name), false});
+    calls_.emplace_back(name);
   }
 
   // A field contact shown to the office as a lamp (a hot box alarm). Non-vital:
@@ -144,6 +152,62 @@ public:
   SignalMast* findMast(std::string_view n) { return find(masts_, n); }
   Route* findRoute(std::string_view n) { return find(routes_, n); }
 
+  // ---- read-only introspection (the debug channel; nothing vital reads it) -----
+
+  const std::deque<TrackCircuit>& trackCircuits() const { return circuits_; }
+  const std::deque<TrackCircuit>& contacts() const { return contacts_; }
+  const std::deque<Switch>& switches() const { return switches_; }
+  const std::deque<ElectricLock>& electricLocks() const { return locks_; }
+  const std::deque<SignalLever>& levers() const { return levers_; }
+  const std::deque<SignalMast>& masts() const { return masts_; }
+  const std::deque<MaintainerCall>& maintainerCalls() const { return calls_; }
+  const std::deque<Route>& routes() const { return routes_; }
+
+  // Why the last apply() answered VitalIgnored (the first hazard found, in
+  // plain words); empty after any other answer.
+  const std::string& lastRefusal() const { return refusal_; }
+
+  // What the scans since the last call dropped, and why: a stored signal
+  // demand that cleared nothing, a cleared signal put back to STOP, a switch
+  // demand the locks forbade. Recorded where the engine decides it. At most
+  // kMaxNotes are kept if nobody takes them.
+  std::vector<std::string> takeNotes() {
+    std::vector<std::string> out;
+    out.swap(notes_);
+    return out;
+  }
+
+  // What locks a switch as of the last scan, in words; empty: free (WLR up).
+  // It reads the same terms as evaluate() step 5, which builds the lock bits.
+  std::string lockedBy(const Switch& sw) const {
+    std::vector<std::string> by;
+    auto add = [&by](std::string s) {
+      for (const std::string& b : by)
+        if (b == s) return;
+      by.push_back(std::move(s));
+    };
+    if (sw.osCircuit() != nullptr && !sw.osCircuit()->clear())
+      add("detector locking (" + sw.osCircuit()->name() + " not proven clear)");
+    for (const Route& r : routes_) {
+      if (!r.uses(&sw)) continue;
+      switch (r.state_) {
+        case Route::State::Cleared: add("route " + r.name() + " (cleared)"); break;
+        case Route::State::Releasing: add("route " + r.name() + " (awaiting proof of STOP)"); break;
+        case Route::State::Timing: add("route " + r.name() + " (time locking)"); break;
+        case Route::State::Traversing:
+          for (size_t i = 0; i < r.switches_.size(); ++i)
+            if (r.switches_[i].sw == &sw && !r.released_[i]) add("route " + r.name() + " (train on the route)");
+          break;
+        case Route::State::Idle: break;
+      }
+      if (!provenStop(r))
+        add("mast " + (r.mast_ ? r.mast_->name() : std::string("?")) + " not proven at STOP");
+    }
+    std::string out;
+    for (const std::string& b : by) out += (out.empty() ? "" : ", ") + b;
+    return out;
+  }
+
   // ---- the vital scan --------------------------------------------------------
 
   void tick(uint32_t now_ms) {
@@ -167,12 +231,13 @@ public:
   // A transaction built against another plant, or against this plant
   // before its configuration grew, is Malformed too.
   ControlResult apply(const ControlTransaction& t) {
+    refusal_.clear();
     if (!finalized_ || t.plant_ != this || t.malformed_) return ControlResult::Malformed;
     if (t.switches_.size() != switches_.size() || t.signals_.size() != levers_.size() ||
         t.locks_.size() != locks_.size() || t.calls_.size() != calls_.size())
       return ControlResult::Malformed;
-    for (size_t i = 0; i < calls_.size(); ++i) calls_[i].on = t.calls_[i] != 0;  // non-vital, always
-    if (!safe(t)) return ControlResult::VitalIgnored;
+    for (size_t i = 0; i < calls_.size(); ++i) calls_[i].call(t.calls_[i] != 0);  // non-vital, always
+    if (!safe(t, refusal_)) return ControlResult::VitalIgnored;
 
     for (size_t i = 0; i < switches_.size(); ++i) {
       if (t.switches_[i] == ControlTransaction::kNormal) switches_[i].demand(Position::Normal);
@@ -214,16 +279,18 @@ public:
       ind.signal_r_.push_back(gr);
       ind.signal_t_.push_back(timeLockingIndication(lever, gl, gr));
     }
-    for (const Call& c : calls_) ind.calls_.push_back(c.on);
+    for (const MaintainerCall& c : calls_) ind.calls_.push_back(c.lit());
     for (const TrackCircuit& tc : circuits_) ind.occupied_.push_back(!tc.clear());
     for (const TrackCircuit& c : contacts_) ind.lamps_.push_back(!c.clear());
     for (size_t i = 0; i < unbound_lamps_.size(); ++i) ind.lamps_.push_back(0);
     return ind;
   }
 
+  // The stored CALL control of a maintainer call (what the office last asked
+  // for), not what its lamp shows: that is the CALL indication.
   bool maintainerCall(std::string_view n) const {
-    for (const Call& c : calls_)
-      if (c.name == n) return c.on;
+    for (const MaintainerCall& c : calls_)
+      if (c.name() == n) return c.called();
     return false;
   }
 
@@ -238,11 +305,6 @@ public:
 private:
   friend class ControlTransaction;
   friend class Indications;
-
-  struct Call {
-    std::string name;
-    bool on;
-  };
 
   bool refuse() {
     if (finalized_) refused_ = true;
@@ -261,11 +323,7 @@ private:
       if (items[i].name() == n) return static_cast<int>(i);
     return -1;
   }
-  int callIndex(std::string_view n) const {
-    for (size_t i = 0; i < calls_.size(); ++i)
-      if (calls_[i].name == n) return static_cast<int>(i);
-    return -1;
-  }
+  int callIndex(std::string_view n) const { return indexOf(calls_, n); }
 
   // Two routes from different masts conflict when they share a switch or a
   // track circuit: opposing and converging moves alike. Each must find the
@@ -294,6 +352,7 @@ private:
     for (Switch& sw : switches_) sw.sample(now_ms);
     for (SignalMast& m : masts_) m.sample(now_ms);
     for (ElectricLock& l : locks_) l.sample(now_ms);
+    for (MaintainerCall& c : calls_) c.sample(now_ms);  // non-vital: nothing in evaluate() reads it
     for (Route& r : routes_) r.next_proceed_ = r.next_ != nullptr && r.next_->asserted();
   }
 
@@ -308,17 +367,76 @@ private:
     return s.sw->electricLock() == nullptr || s.sw->electricLock()->provenLocked();
   }
 
-  bool clearable(const Route& r) const {
-    if (r.mast_ == nullptr || !r.mast_->healthy() || r.levers_.empty()) return false;
+  // Says no, and why if someone asked. The words are built only then.
+  template <class Text>
+  static bool no(std::string* why, Text&& text) {
+    if (why != nullptr) *why = text();
+    return false;
+  }
+
+  static std::string circuitHazard(const TrackCircuit& tc) {
+    return "track circuit " + tc.name() + (tc.healthy() ? " is occupied" : " is not proven clear (unhealthy)");
+  }
+  static std::string conflictHazard(const Route& c) {
+    if (c.state_ != Route::State::Idle)
+      return "conflicting route " + c.name() + " is " + Route::stateName(c.state_);
+    return "mast " + (c.mast_ ? c.mast_->name() : std::string("?")) + " of conflicting route " + c.name() +
+           " is not proven at STOP";
+  }
+  static std::string lockHazard(const ElectricLock& l) {
+    const char* how = !l.healthy()      ? "unhealthy"
+                      : l.open()        ? "open"
+                      : l.granted()     ? "release granted"
+                      : l.withdrawing() ? "release not yet proven withdrawn"
+                                        : "release never withdrawn";
+    return "lock " + l.name() + " is not proven locked (" + how + ")";
+  }
+  static std::string switchHazard(const Route::SwitchReq& s) {
+    const Switch& sw = *s.sw;
+    if (sw.provenAt(s.pos)) return lockHazard(*sw.electricLock());
+    const std::string late =
+        sw.timedOut() ? " within " + std::to_string(sw.travelTimeoutMs()) + " ms" : std::string();
+    if (sw.reported() == s.pos)  // at the wanted end, but its stored demand is the other end
+      return "switch " + sw.name() + " reports " + positionName(s.pos) + " but is out of correspondence: its demand is " +
+             positionName(sw.demand()) + (late.empty() ? "" : ", which it did not reach" + late);
+    return "switch " + sw.name() + " is not proven " + positionName(s.pos) + " (it reports " +
+           positionName(sw.reported()) + (late.empty() ? "" : ", it did not settle" + late) + ")";
+  }
+
+  // `why`, if given, gets the first hazard found when the answer is no.
+  bool clearable(const Route& r, std::string* why = nullptr) const {
+    if (r.mast_ == nullptr || r.levers_.empty()) return no(why, [] { return std::string("it has no mast or no lever"); });
+    if (!r.mast_->healthy()) return no(why, [&r] { return "mast " + r.mast_->name() + " is not healthy"; });
     for (const Route::LeverReq& l : r.levers_)
-      if (l.lever->active() != l.dir) return false;
-    if (timeLocking(*r.lever())) return false;  // ASR down: no route of this lever clears
+      if (l.lever->active() != l.dir)
+        return no(why, [&l] { return "signal lever " + l.lever->name() + " is not " + directionName(l.dir); });
+    if (timeLocking(*r.lever()))  // ASR down: no route of this lever clears
+      return no(why, [&r] { return "time locking is running on signal lever " + r.lever()->name(); });
     for (const Route::SwitchReq& s : r.switches_)
-      if (!switchProven(s)) return false;
-    if (!r.blocksClear()) return false;
+      if (!switchProven(s)) return no(why, [&s] { return switchHazard(s); });
+    for (const TrackCircuit* b : r.blocks_)
+      if (!b->clear()) return no(why, [b] { return circuitHazard(*b); });
     for (const Route* c : r.conflicts_)
-      if (c->state_ != Route::State::Idle || !provenStop(*c)) return false;
+      if (c->state_ != Route::State::Idle || !provenStop(*c)) return no(why, [c] { return conflictHazard(*c); });
     return true;
+  }
+
+  // The words are built only if the note is kept.
+  template <class Text>
+  void note(Text&& text) {
+    if (notes_.size() < kMaxNotes) notes_.push_back(text());
+  }
+
+  // Why a stored LEFT/RIGHT cleared nothing: each route that needs it, and its first hazard.
+  std::string whyNothingCleared(const SignalLever& lever) const {
+    std::string out;
+    for (const Route& r : routes_) {
+      if (!r.requires(&lever, lever.active())) continue;
+      std::string why;
+      if (clearable(r, &why)) why = std::string("it is ") + Route::stateName(r.state_);
+      out += (out.empty() ? "route " : "; route ") + r.name() + ": " + why;
+    }
+    return out.empty() ? "no route needs it" : out;
   }
 
   SignalIndication indicationOf(const Route& r) const {
@@ -382,6 +500,12 @@ private:
             // approach locking (spike section 5, defect 2). Author choice:
             // the stored demand drops too, so the signal does not re-clear by
             // itself when the hazard goes away (spike section 6, item 3).
+            note([this, &r] {  // asked again for the words, before anything changes: the same answer
+              std::string why;
+              clearable(r, &why);
+              return "signal " + (r.mast_ ? r.mast_->name() : std::string("?")) + " put to STOP, route " + r.name() +
+                     " dropped: " + why;
+            });
             r.state_ = Route::State::Releasing;
             r.timed_ = r.approachOccupied();
             dropLevers(r);
@@ -410,6 +534,9 @@ private:
     // 4. Stored signal demands (README.CodeLine 5.1 rule 1): a demand that
     //    cannot clear now is held only while a switch its own frame
     //    commanded is still settling, then dropped.
+    //    (The drops are made after the loop only so that each note is worded
+    //    with every lever as the frame left it; no lever's fate reads another.)
+    std::vector<SignalLever*> dropped;
     for (size_t i = 0; i < levers_.size(); ++i) {
       SignalLever& lever = levers_[i];
       if (!lever.pending()) continue;
@@ -419,8 +546,15 @@ private:
       bool settling = false;
       for (const Switch* sw : awaits_[i]) settling = settling || sw->settling();
       if (cleared) lever.fulfilled();
-      else if (!settling) lever.drop();
+      else if (!settling) {
+        note([this, &lever] {
+          return std::string("signal ") + lever.name() + " " + directionName(lever.active()) +
+                 " demand dropped, nothing cleared: " + whyNothingCleared(lever);
+        });
+        dropped.push_back(&lever);
+      }
     }
+    for (SignalLever* lever : dropped) lever->drop();
 
     // 5. Switch locks, rebuilt from the route states every scan.
     for (Switch& sw : switches_) {
@@ -448,9 +582,16 @@ private:
   }
 
   void drive() {
-    for (Switch& sw : switches_) sw.drive();
+    for (Switch& sw : switches_) {
+      const Position wanted = sw.demand();
+      if (sw.drive())
+        note([this, &sw, wanted] {
+          return "switch " + sw.name() + " demand " + positionName(wanted) + " dropped: locked by " + lockedBy(sw);
+        });
+    }
     for (SignalMast& m : masts_) m.drive();
     for (ElectricLock& l : locks_) l.drive();
+    for (MaintainerCall& c : calls_) c.drive();
   }
 
   // ---- control transaction safety (README.CodeLine 5.3) -------------------------
@@ -489,12 +630,16 @@ private:
   // now, or that the frame itself releases, is unsafe, so a frame cannot
   // re-lock and clear over the lock at once; a STOP never makes a frame
   // unsafe, but an unsafe frame ignores its STOPs too, as 5.3 says.
-  bool safe(const ControlTransaction& t) const {
+  // `why` gets the first hazard found when the answer is no.
+  bool safe(const ControlTransaction& t, std::string& why) const {
     // Switches: a change of demand needs WLR.
     for (size_t i = 0; i < switches_.size(); ++i) {
       const Switch& sw = switches_[i];
       const Position e = effective(t, sw);
-      if (sw.kind() == Switch::Kind::Power && e != sw.demand() && !sw.WLR()) return false;
+      if (sw.kind() == Switch::Kind::Power && e != sw.demand() && !sw.WLR())
+        return no(&why, [&] {
+          return "switch " + sw.name() + " to " + positionName(e) + ": it is locked by " + lockedBy(sw);
+        });
     }
     // Signals: LEFT or RIGHT.
     std::vector<const Route*> wanted;
@@ -502,33 +647,53 @@ private:
       const uint8_t w = t.signals_[li];
       if (w != ControlTransaction::kLeft && w != ControlTransaction::kRight) continue;
       const Direction d = w == ControlTransaction::kLeft ? Direction::Left : Direction::Right;
-      if (timeLocking(levers_[li])) return false;
+      const SignalLever& lever = levers_[li];
+      auto what = [&lever, d] { return "signal " + lever.name() + " " + directionName(d); };
+      if (timeLocking(lever)) return no(&why, [&] { return what() + ": time locking is running on that lever"; });
       for (const Route& r : routes_) {
         if (!r.requires(&levers_[li], d) || !lined(t, r)) continue;
         wanted.push_back(&r);
-        if (!r.blocksClear()) return false;
+        auto over = [&what, &r] { return what() + ", route " + r.name() + ": "; };
+        for (const TrackCircuit* b : r.blocks_)
+          if (!b->clear()) return no(&why, [&] { return over() + circuitHazard(*b); });
         for (const Route* c : r.conflicts_)
-          if (c->state_ != Route::State::Idle || !provenStop(*c)) return false;
+          if (c->state_ != Route::State::Idle || !provenStop(*c)) return no(&why, [&] { return over() + conflictHazard(*c); });
         for (const Route::SwitchReq& s : r.switches_) {
           const ElectricLock* l = s.sw->electricLock();
-          if (l != nullptr && (!l->provenLocked() || t.locks_[indexOfLock(*l)])) return false;
+          if (l == nullptr) continue;
+          if (!l->provenLocked()) return no(&why, [&] { return over() + lockHazard(*l); });
+          if (t.locks_[indexOfLock(*l)])
+            return no(&why, [&] { return over() + "the same frame releases lock " + l->name(); });
         }
       }
     }
     for (const Route* a : wanted)
       for (const Route* c : a->conflicts_)
         for (const Route* b : wanted)
-          if (b == c) return false;
+          if (b == c)
+            return no(&why, [&] {
+              return "signals of this frame conflict: route " + a->name() + " and route " + b->name();
+            });
     // Locks: a new release needs nothing lined, locked, or unproven at STOP
     // over its switches (FieldUnit how-to 03, narrowed to the locked
     // switches so the Walkthrough's parallel move on MT2 stays possible).
     for (size_t k = 0; k < locks_.size(); ++k) {
       if (!t.locks_[k] || locks_[k].granted()) continue;
+      auto what = [this, k] { return "lock " + locks_[k].name() + " release: "; };
       for (const Switch* sw : locks_[k].switches()) {
-        if (!sw->WLR()) return false;
+        if (!sw->WLR())
+          return no(&why, [&] { return what() + "switch " + sw->name() + " is locked by " + lockedBy(*sw); });
         for (const Route& r : routes_) {
           if (!r.uses(sw)) continue;
-          if (r.state_ != Route::State::Idle || !provenStop(r)) return false;
+          if (r.state_ != Route::State::Idle)
+            return no(&why, [&] {
+              return what() + "route " + r.name() + " over switch " + sw->name() + " is " + Route::stateName(r.state_);
+            });
+          if (!provenStop(r))
+            return no(&why, [&] {
+              return what() + "mast " + (r.mast_ ? r.mast_->name() : std::string("?")) + " of route " + r.name() +
+                     " is not proven at STOP";
+            });
         }
       }
     }
@@ -575,8 +740,13 @@ private:
   std::deque<SignalLever> levers_;
   std::deque<SignalMast> masts_;
   std::deque<Route> routes_;
-  std::vector<Call> calls_;
+  std::deque<MaintainerCall> calls_;
   std::vector<std::vector<const Switch*>> awaits_;  // per lever: the switches its last LEFT/RIGHT frame commanded
+
+  // Informative only (the debug channel): nothing in the scan reads these back.
+  static constexpr size_t kMaxNotes = 64;
+  std::string refusal_;
+  std::vector<std::string> notes_;
 
   // Refused configuration: detached, never sampled, evaluated or driven.
   std::deque<TrackCircuit> refused_circuits_;

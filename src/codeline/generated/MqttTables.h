@@ -57,6 +57,8 @@ inline constexpr const char* kLeverSwitchToken = "SW";
 inline constexpr const char* kLeverLampToken = "LAMP";
 // Cluster:BUTTON /event: BTN<k> | (BTN<k>).
 inline constexpr const char* kButtonToken = "BTN";
+// Cluster:ON/OFF (root LAMP) /cmd and /state: ON | (ON).
+inline constexpr const char* kOnOffToken = "ON";
 
 // Cluster:TURNOUT positive-control pair: "NORMAL (REVERSE)" etc.
 struct PairBits {

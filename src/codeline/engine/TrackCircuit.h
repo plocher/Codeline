@@ -37,6 +37,7 @@ public:
   // arrived (it does not accept a signal or start a sectional release).
   bool occupied() const { return healthy_ && active_; }
   bool healthy() const { return healthy_; }
+  Health applianceHealth() const { return link_.health.health(); }  // informative (debug channel)
 
   // Ingress, once per scan.
   void sample(uint32_t now_ms) {

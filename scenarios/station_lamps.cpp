@@ -2,7 +2,7 @@
 //
 //   Sargent HBA   a contact (hot box alarm) on a sensor: HBAK is lit unless the
 //                 detector is healthy and proves it open.
-//   Luchessa NFL, SFL   chart lamps the project file gives no source for: the
+//   Luchessa EFL, WFL   chart lamps the project file gives no source for: the
 //                 station starts and they read dark (a stopgap of the station file).
 #include <cstdio>
 #include <map>
@@ -79,11 +79,11 @@ SCENARIO("Sargent HBA: the alarm lamp follows the contact, and is lit whenever t
   CHECK(s.shows("(HBAK)"));
 }
 
-SCENARIO("Luchessa NFL, SFL: lamps with no source in the project file let the station start and read dark") {
+SCENARIO("Luchessa EFL, WFL: lamps with no source in the project file let the station start and read dark") {
   Station s("build/Luchessa.station");
   CHECK(s.ok);
-  CHECK(s.shows("(NFLK)"));
-  CHECK(s.shows("(SFLK)"));
+  CHECK(s.shows("(EFLK)"));
+  CHECK(s.shows("(WFLK)"));
 }
 
 int main() { return codeline::scenario::run(); }

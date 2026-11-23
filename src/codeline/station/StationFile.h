@@ -74,6 +74,11 @@ struct MastSpec {
   std::vector<NvSetting> nv;
 };
 
+// A maintainer call. role and id empty: no lamp is bound to it.
+struct CallSpec {
+  std::string name, role, id;
+};
+
 struct AlignSpec {
   std::string sw;
   engine::Position pos;
@@ -98,7 +103,7 @@ struct StationSpec {
   std::vector<LockSpec> locks;
   std::vector<LeverSpec> levers;
   std::vector<MastSpec> masts;
-  std::vector<std::string> calls;
+  std::vector<CallSpec> calls;
   std::vector<CircuitSpec> contacts;        // a contact shown to the office as a lamp
   std::vector<std::string> unbound_lamps;   // chart lamps with no source yet: dark
   std::vector<RouteSpec> routes;
@@ -316,8 +321,11 @@ inline bool parseStation(std::string_view text, StationSpec& out, std::string& e
       if (l.positional() != 2 || !l.at(1, a)) return fail(error, number, "lamp <name>");
       s.unbound_lamps.push_back(a);
     } else if (kw == "call") {
-      if (l.positional() != 2 || !l.at(1, a)) return fail(error, number, "call <name>");
-      s.calls.push_back(a);
+      CallSpec cs;
+      const size_t n = l.positional();
+      if ((n != 2 && n != 4) || !l.at(1, cs.name) || (n == 4 && (!l.at(2, cs.role) || !l.at(3, cs.id))))
+        return fail(error, number, "call <name> [<role> <id>]");
+      s.calls.push_back(cs);
     } else if (kw == "route") {
       RouteSpec r;
       if (!detail::parseRoute(l, r)) return fail(error, number, "bad route record");

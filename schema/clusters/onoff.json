@@ -1,0 +1,15 @@
+{
+  "$comment": "Cluster:ON/OFF. Source: docs/clusters/README.Clusters.md. The root-level form (Appliance:LAMP): setOn is operational, so it carries no gate. The docs give onoff.on two access classes, VITAL on wayside sub-components and RW on a LAMP; only the root LAMP composes this cluster in this slice, so it is RW here (a sub-component form driven by MAST or LEVER, without setOn and state, is not part of this slice).",
+  "cluster": "ON/OFF",
+  "prefix": "onoff",
+  "commands": [
+    { "name": "setOn", "params": [ { "name": "on", "type": "bool" } ] }
+  ],
+  "state": [
+    { "name": "on", "type": "bool" }
+  ],
+  "events": [],
+  "attributes": [
+    { "name": "on", "type": "bool", "persistence": "volatile", "access": "RW", "default": false }
+  ]
+}

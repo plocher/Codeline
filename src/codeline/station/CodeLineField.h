@@ -17,14 +17,17 @@
 //     whole, vital and non-vital controls alike.
 //   - valid: one ControlTransaction to the plant, which decides between
 //     applied and valid-but-unsafe (README.CodeLine 5.3).
-// Each outcome is counted. Controls are subscribed at QoS 0 (section 5 rule
+// Each outcome is counted, and told to onFrame's listener with a few words on
+// why (the debug channel, DebugChannel.h; informative only). Controls are subscribed at QoS 0 (section 5 rule
 // 1); the indications' QoS is the client's (MosquittoClient.h: QoS 1 for a
 // retained publish).
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "codeline/engine/Plant.h"
@@ -61,6 +64,10 @@ public:
   const std::string& controlsTopic() const { return controls_; }
   const std::string& indicationsTopic() const { return indications_; }
   const Counts& counts() const { return counts_; }
+
+  // Called after each control frame is decided, before the indications are
+  // republished: the outcome, and why (empty when applied). Informative.
+  void onFrame(std::function<void(Outcome, const std::string& why)> listener) { on_frame_ = std::move(listener); }
 
   // Every function of the chart exists in the plant: each control can be
   // asserted alone, each indication can be read. A runtime refuses to start otherwise.
@@ -112,7 +119,9 @@ public:
 
   // One control frame, as received (exposed for scenarios; onMessage calls it).
   Outcome receive(std::string_view payload) {
+    why_.clear();
     const Outcome o = decide(payload);
+    if (on_frame_) on_frame_(o, why_);
     switch (o) {
       case Outcome::Applied: ++counts_.applied; break;
       case Outcome::VitalIgnored: ++counts_.vital_ignored; break;
@@ -130,6 +139,13 @@ private:
   std::string controls_, indications_;
   std::string last_;
   Counts counts_;
+  std::function<void(Outcome, const std::string&)> on_frame_;
+  std::string why_;  // why the frame being decided is not applied, for on_frame_
+
+  Outcome malformed(std::string why) {
+    why_ = std::move(why);
+    return Outcome::Malformed;
+  }
 
   void publish(const std::string& frame) {
     client_.publish(indications_, frame, true);
@@ -160,9 +176,14 @@ private:
 
   Outcome decide(std::string_view payload) {
     const std::vector<std::string_view> t = terms(payload);
-    if (t.size() < 2 || t[0] != "CHART") return Outcome::Malformed;
-    if (t[1] != chart_.id) return Outcome::OutOfSync;
-    if (t.size() - 2 != chart_.controls.size()) return Outcome::Malformed;
+    if (t.size() < 2 || t[0] != "CHART") return malformed("it does not open with CHART and a chart identity");
+    if (t[1] != chart_.id) {
+      why_ = "the frame is for chart " + std::string(t[1]) + ", this field's chart is " + chart_.id;
+      return Outcome::OutOfSync;
+    }
+    if (t.size() - 2 != chart_.controls.size())
+      return malformed(std::to_string(t.size() - 2) + " terms, the chart has " + std::to_string(chart_.controls.size()) +
+                       " controls");
     std::vector<int> asserted_in_group;
     engine::ControlTransaction tx = plant_.newControls();
     for (size_t i = 0; i < chart_.controls.size(); ++i) {
@@ -170,22 +191,26 @@ private:
       std::string_view term = t[i + 2];
       const bool dropped = term.size() >= 2 && term.front() == '(' && term.back() == ')';
       if (dropped) term = term.substr(1, term.size() - 2);
-      if (term != f.aar) return Outcome::Malformed;  // missing, extra, unknown or out of order
+      if (term != f.aar)  // missing, extra, unknown or out of order
+        return malformed("term " + std::to_string(i + 1) + " is " + std::string(t[i + 2]) + ", the chart has " + f.aar +
+                         " there");
       if (dropped) continue;
       if (f.group != 0) {
         for (int g : asserted_in_group)
-          if (g == f.group) return Outcome::Malformed;  // two words of one group
+          if (g == f.group) return malformed(f.aar + " is a second asserted word of its positive-control group");
         asserted_in_group.push_back(f.group);
       }
       tx.assertFunction(f.cls, f.appliance, f.word);
     }
-    if (tx.malformed()) return Outcome::Malformed;
+    if (tx.malformed()) return malformed("it names a function the plant does not have");
     switch (plant_.apply(tx)) {
       case engine::ControlResult::Applied: return Outcome::Applied;
-      case engine::ControlResult::VitalIgnored: return Outcome::VitalIgnored;
-      case engine::ControlResult::Malformed: return Outcome::Malformed;
+      case engine::ControlResult::VitalIgnored:
+        why_ = plant_.lastRefusal();
+        return Outcome::VitalIgnored;
+      case engine::ControlResult::Malformed: break;
     }
-    return Outcome::Malformed;
+    return malformed("the plant does not take it");
   }
 };
 

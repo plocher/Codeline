@@ -1,4 +1,4 @@
-// SENSOR, SIGNALMAST and CONTROL scenarios that only exist on the MQTT path:
+// SENSOR, SIGNALMAST, CONTROL and LAMP scenarios that only exist on the MQTT path:
 // exact wire frames (docs/Walkthrough.md, docs/bindings/MQTT.md section 5),
 // retention, the last will, the proxy's own link, and bad /state frames.
 // Time moves only through rig.tick(now_ms).
@@ -156,6 +156,7 @@ static void retainedScenario(const char* cmd, Untouched untouched) {
 SCENARIO("sensor  a retained /event is stale and never proves health") { retainedEventScenario<SensorTraits>(); }
 SCENARIO("mast    a retained /event is stale and never proves health") { retainedEventScenario<MastTraits>(); }
 SCENARIO("control a retained /event is stale and never proves health") { retainedEventScenario<ControlTraits>(); }
+SCENARIO("lamp    a retained /event is stale and never proves health") { retainedEventScenario<LampTraits>(); }
 
 // ---- TURNOUT (the same transport rules on the older proxy) ----
 
@@ -455,6 +456,76 @@ SCENARIO("control a bad /state proves no lever") {
 }
 SCENARIO("control a retained LAMP1 never lights the release lamp") {
   retainedScenario<ControlTraits>("LAMP1", [](MqttRigOf<ControlTraits>& r) { return r.driver().lamps() == 0; });
+}
+
+// ---- LAMP (the maintainer call lamp lamp/Corporal:1MC; MQTT.md section 3, ON/OFF root LAMP) ----
+
+SCENARIO("lamp    wire: lamp/Corporal:1MC/cmd carries ON and (ON) unretained, lamp/Corporal:1MC/state ON and (ON) retained") {
+  MqttRigOf<LampTraits> rig;
+  CHECK(rig.topic("state") == "/layout/SPCoast/appliances/lamp/Corporal:1MC/state");
+  CHECK(rig.topic("cmd") == "/layout/SPCoast/appliances/lamp/Corporal:1MC/cmd");
+  CHECK(retainedIs(rig, "state", "UNAVAILABLE"));  // set on connect: no stale state from an earlier session
+  CHECK(rig.app().state() == false);               // and a proxy shows it not lit
+  rig.tick(0);
+  CHECK(retainedIs(rig, "state", "(ON)"));
+  CHECK(rig.sent("event", "CONFIG maintenance.post=true", false));
+  rig.app().setOn(true);
+  CHECK(rig.sent("cmd", "ON", false));
+  CHECK(rig.sent("state", "ON", true));
+  CHECK(retainedIs(rig, "state", "ON"));
+  rig.app().setOn(false);
+  CHECK(rig.sent("cmd", "(ON)", false));
+  CHECK(retainedIs(rig, "state", "(ON)"));
+  CHECK(rig.retained("cmd") == nullptr);
+  CHECK(rig.retained("event") == nullptr);
+  rig.app().exportAttributes();
+  CHECK(rig.sent("event",
+                 "ATTRIBUTES maintenance.offline=false maintenance.id=false maintenance.faulted=false "
+                 "maintenance.fault_count=0 onoff.on=false",
+                 false));
+  rig.officeClient().publish(rig.topic("maint"), "SET onoff.on = true", false);  // RW while ONLINE on a LAMP
+  CHECK(rig.driver().lit());
+  CHECK(retainedIs(rig, "state", "ON"));
+}
+
+SCENARIO("lamp    the will of a lit lamp reports not lit, then Unavailable; the lamp stays lit and restates ON by itself") {
+  MqttRigOf<LampTraits> rig;
+  StateRecorder<LampTraits> rec;
+  rig.app().setObserver(&rec);
+  rig.tick(0);
+  rig.app().setOn(true);
+  CHECK(rig.app().state() == true);
+  rec.clear();
+  rig.broker().dropConnection(rig.applianceClient());
+  CHECK(rec.timeline == "(ON) Unavailable ");
+  CHECK(rig.app().state() == false);
+  CHECK(retainedIs(rig, "state", "UNAVAILABLE"));
+  CHECK(rig.driver().lit());  // losing the broker does nothing to the lamp itself
+  rec.clear();
+  for (uint32_t t = 10; t <= 3000; t += 10) rig.tick(t);  // the adapter reconnects on its backoff
+  CHECK(rec.timeline == "ON ");
+  CHECK(retainedIs(rig, "state", "ON"));
+}
+
+SCENARIO("lamp    the office's own link loss reports not lit, then Unavailable; the retained ON is found again") {
+  MqttRigOf<LampTraits> rig;
+  StateRecorder<LampTraits> rec;
+  rig.app().setObserver(&rec);
+  rig.tick(0);
+  rig.app().setOn(true);
+  rec.clear();
+  rig.broker().dropConnection(rig.officeClient());
+  CHECK(rec.timeline == "(ON) Unavailable ");
+  CHECK(retainedIs(rig, "state", "ON"));
+  rig.proxy().connect("office");
+  CHECK(rig.app().state() == true);
+}
+
+SCENARIO("lamp    a bad /state is not lit") {
+  badStateScenario<LampTraits>("(ON)", "ON", {"", "LIT", "ON ON", "ON X", "(ON", "on", "ACTIVE", "UNAVAILABLE"});
+}
+SCENARIO("lamp    a retained ON never lights a waking lamp") {
+  retainedScenario<LampTraits>("ON", [](MqttRigOf<LampTraits>& r) { return !r.driver().lit(); });
 }
 
 int main() { return codeline::scenario::run(); }

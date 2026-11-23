@@ -1,4 +1,4 @@
-// Two ways to stand up the same simulated SENSOR, SIGNALMAST or CONTROL for
+// Two ways to stand up the same simulated SENSOR, SIGNALMAST, CONTROL or LAMP for
 // functional scenarios (docs/bindings/Cpp.md section 5), as TurnoutRig.h
 // does for TURNOUT:
 //   DirectRigOf<T>: Core(SimulatedDriver)
@@ -18,13 +18,16 @@
 #include "codeline/appliance/ApplianceHealth.h"
 #include "codeline/appliance/ControlCore.h"
 #include "codeline/appliance/INvStore.h"
+#include "codeline/appliance/LampCore.h"
 #include "codeline/appliance/MastCore.h"
 #include "codeline/appliance/SensorCore.h"
 #include "codeline/mqtt/InMemoryMockBroker.h"
 #include "codeline/mqtt/MqttControl.h"
+#include "codeline/mqtt/MqttLamp.h"
 #include "codeline/mqtt/MqttMast.h"
 #include "codeline/mqtt/MqttSensor.h"
 #include "codeline/sim/SimulatedControlDriver.h"
+#include "codeline/sim/SimulatedLampDriver.h"
 #include "codeline/sim/SimulatedMastDriver.h"
 #include "codeline/sim/SimulatedSensorDriver.h"
 
@@ -82,6 +85,23 @@ struct ControlTraits {
   static void applyRaw(IControl& c, std::string_view frame) {
     BitVector lamps;
     if (mqtt::decodeLamps(frame, lamps)) c.setLamps(lamps);
+  }
+};
+
+struct LampTraits {
+  using Interface = ILamp;
+  using Observer = ILampObserver;
+  using State = bool;
+  using Core = LampCore;
+  using Driver = SimulatedLampDriver;
+  using Proxy = mqtt::MqttLampProxy;
+  using Adapter = mqtt::MqttLampAdapter;
+  static constexpr const char* kId = "Corporal:1MC";
+  static Driver makeDriver() { return Driver(); }
+  static std::string text(bool s) { return std::string(mqtt::encodeOnOff(s).view()); }
+  static void applyRaw(ILamp& l, std::string_view frame) {
+    bool on = false;
+    if (mqtt::decodeOnOff(frame, on)) l.setOn(on);
   }
 };
 

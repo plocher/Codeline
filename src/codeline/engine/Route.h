@@ -43,6 +43,17 @@ public:
     Timing,     // proven at STOP with a train approaching (or approach unknown): TER running
   };
 
+  static const char* stateName(State s) {
+    switch (s) {
+      case State::Idle: return "Idle";
+      case State::Cleared: return "Cleared";
+      case State::Traversing: return "Traversing";
+      case State::Releasing: return "Releasing";
+      case State::Timing: return "Timing";
+    }
+    return "?";
+  }
+
   struct SwitchReq {
     Switch* sw;
     Position pos;
@@ -152,6 +163,8 @@ public:
     return true;
   }
   uint32_t terElapsedMs() const { return ter_; }
+  // While traversing: the section of switches()[i] has released. Informative.
+  bool sectionReleased(size_t i) const { return i < released_.size() && released_[i] != 0; }
 
 private:
   friend class Plant;

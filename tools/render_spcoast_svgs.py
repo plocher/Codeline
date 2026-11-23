@@ -5,22 +5,25 @@ from __future__ import annotations
 
 import copy
 import json
-import math
-import re
+import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from trackplan import fmt_pts, page_of, placed, pts  # noqa: E402  (the shared trackplan geometry)
+from trackplan import timetable_label as sp_we_label  # noqa: E402  (N/S -> W/E, codeline_chart.DIRECTION_LETTER)
 
-def sp_we_label(label: str) -> str:
-    """Convert N/S directional letters in SP signal mast and track circuit names to W/E
-    (SP Coast Line convention: West = toward San Francisco, East = away from San Francisco)."""
-    m = re.match(r"^(\d+)([NS])([A-D]+|AT)$", label)
-    if m:
-        num, d, rest = m.groups()
-        return f"{num}{'W' if d == 'N' else 'E'}{rest}"
-    return label
+TOOLS = Path(__file__).resolve().parent
+MODEL_PATH = TOOLS / "spcoast.layout.json"
+OUT_DIR = TOOLS.parent / "docs" / "images"          # default; `--out DIR` writes elsewhere
 
-MODEL_PATH = Path("/Users/jplocher/Dropbox/workspace/Codeline/tools/spcoast.layout.json")
-OUT_DIR = Path("/Users/jplocher/Dropbox/workspace/Codeline/docs/images")
+# Appliances that stand beside the track (lamps, calls, contacts, train-order boards): they do not
+# set a plant's extent. Told by the project file's kind, never by name.
+OFF_TRACK = ("lamp", "contact", "train_order")
+
+
+def off_track(appliance: dict) -> bool:
+    return appliance.get("given", {}).get("Appliance") in OFF_TRACK
+
 
 SWIMLANE_MM = 16.51
 
@@ -39,27 +42,6 @@ LANE0_Y: dict[str, float] = {
     "Corporal": 35.56,
     "Sargent": 33.02,
 }
-
-
-def pts(points_str: str) -> list[tuple[float, float]]:
-    return [tuple(float(v) for v in xy.split(",")) for xy in points_str.split(" ") if xy]
-
-
-def fmt_pts(point_list: list[tuple[float, float]]) -> str:
-    return " ".join(f"{round(x, 4)},{round(y, 4)}" for x, y in point_list)
-
-
-def page_of(pl: dict, local: tuple[float, float]) -> tuple[float, float]:
-    x, y = local
-    if pl.get("mirror") == "y":
-        x = -x
-    if pl.get("mirror") == "x":
-        y = -y
-    a = math.radians(pl.get("rotation", 0))
-    return (
-        pl["at"]["x"] + x * math.cos(a) + y * math.sin(a),
-        pl["at"]["y"] - x * math.sin(a) + y * math.cos(a),
-    )
 
 
 def compress_christopher_geometry(model: dict) -> None:
@@ -131,23 +113,6 @@ def compress_christopher_geometry(model: dict) -> None:
     corp_g["track"].append({"points": "124.46,19.05 143.51,19.05", "derived": {"circuit": "Corporal:1T1"}})
 
 
-def arc_points(start: tuple[float, float], mid: tuple[float, float], end: tuple[float, float], n: int = 16) -> list[tuple[float, float]]:
-    (x1, y1), (x2, y2), (x3, y3) = start, mid, end
-    d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
-    if abs(d) < 1e-9:
-        return [start, mid, end]
-    ux = ((x1 ** 2 + y1 ** 2) * (y2 - y3) + (x2 ** 2 + y2 ** 2) * (y3 - y1) + (x3 ** 2 + y3 ** 2) * (y1 - y2)) / d
-    uy = ((x1 ** 2 + y1 ** 2) * (x3 - x2) + (x2 ** 2 + y2 ** 2) * (x1 - x3) + (x3 ** 2 + y3 ** 2) * (x2 - x1)) / d
-    r = math.hypot(x1 - ux, y1 - uy)
-    a1, a2, a3 = (math.atan2(y - uy, x - ux) for x, y in (start, mid, end))
-
-    def ccw(a: float, b: float) -> float:
-        return (b - a) % (2 * math.pi)
-
-    sweep = ccw(a1, a3) if ccw(a1, a2) <= ccw(a1, a3) else -ccw(a3, a1)
-    return [(ux + r * math.cos(a1 + sweep * i / n), uy + r * math.sin(a1 + sweep * i / n)) for i in range(n + 1)]
-
-
 def render_glyph_svg(
     pl: dict,
     glyph: dict,
@@ -162,10 +127,10 @@ def render_glyph_svg(
     out: list[str] = []
 
     def tx(p: tuple[float, float]) -> tuple[float, float]:
-        px, py = page_of(pl, p)
-        return (px + ox) * scale, (py + oy) * scale
+        return (p[0] + ox) * scale, (p[1] + oy) * scale
 
-    for prim in glyph["shape"]:
+    for item in placed(pl, glyph):
+        prim = item["prim"]
         st = prim.get("stroke", {})
         fl = prim.get("fill")
         raw_w = st.get("width", 0.0) or 0.0
@@ -198,33 +163,19 @@ def render_glyph_svg(
             style_parts.append("fill:none")
         style_attr = ";".join(style_parts)
 
-        t = prim["type"]
-        if t == "polyline":
-            p_str = " ".join(f"{x:.1f},{y:.1f}" for x, y in (tx(p) for p in pts(prim["points"])))
+        if item["shape"] == "polyline":
+            p_str = " ".join(f"{x:.1f},{y:.1f}" for x, y in (tx(p) for p in item["points"]))
             out.append(f'<polyline points="{p_str}" style="{style_attr}"/>')
-        elif t == "circle":
-            cx, cy = tx((prim["center"]["x"], prim["center"]["y"]))
-            rad = max(prim["radius"] * scale, 2.2)
+        elif item["shape"] == "circle":
+            cx, cy = tx(item["center"])
+            rad = max(item["radius"] * scale, 2.2)
             out.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{rad:.1f}" style="{style_attr}"/>')
-        elif t == "arc":
-            aps = arc_points(
-                (prim["start"]["x"], prim["start"]["y"]),
-                (prim["mid"]["x"], prim["mid"]["y"]),
-                (prim["end"]["x"], prim["end"]["y"]),
-            )
-            p_str = " ".join(f"{x:.1f},{y:.1f}" for x, y in (tx(p) for p in aps))
-            out.append(f'<polyline points="{p_str}" style="{style_attr}"/>')
-        elif t == "rectangle":
-            a, b = prim["start"], prim["end"]
-            corners = [(a["x"], a["y"]), (b["x"], a["y"]), (b["x"], b["y"]), (a["x"], b["y"]), (a["x"], a["y"])]
-            p_str = " ".join(f"{x:.1f},{y:.1f}" for x, y in (tx(p) for p in corners))
-            out.append(f'<polyline points="{p_str}" style="{style_attr}"/>')
-        elif t == "text":
-            if prim["text"].strip().lower() == "signal":
+        elif item["shape"] == "text":
+            if item["text"].strip().lower() == "signal":
                 continue
-            x, y = tx((prim["at"]["x"], prim["at"]["y"]))
-            fs = max(prim["size"] * scale * 0.85, 9.0)
-            out.append(f'<text x="{x:.1f}" y="{y + fs * 0.35:.1f}" text-anchor="middle" font-size="{fs:.1f}" fill="#222222">{prim["text"]}</text>')
+            x, y = tx(item["at"])
+            fs = max(item["size"] * scale * 0.85, 9.0)
+            out.append(f'<text x="{x:.1f}" y="{y + fs * 0.35:.1f}" text-anchor="middle" font-size="{fs:.1f}" fill="#222222">{item["text"]}</text>')
     return "\n  ".join(out)
 
 
@@ -259,7 +210,7 @@ def render_interlocking_detail(model: dict, name: str, title: str, out_file: Pat
 
     all_x = [p[0] for t in g["track"] for p in pts(t["points"])]
     for k, a in g["appliances"].items():
-        if k in ("NFL", "SFL", "1MC", "2MC", "Gilroy", "HBA"):
+        if off_track(apps.get(k, {})):
             continue
         all_x.append(a["at"]["x"])
         gl = glyphs[a["glyph"]]
@@ -494,7 +445,7 @@ def render_full_corridor(model: dict, out_file: Path) -> None:
 
         all_x = [p[0] for t in g["track"] for p in pts(t["points"])]
         for k, a in g["appliances"].items():
-            if k in ("NFL", "SFL", "1MC", "2MC", "Gilroy", "HBA"):
+            if off_track(apps.get(k, {})):
                 continue
             all_x.append(a["at"]["x"])
             gl = glyphs[a["glyph"]]
@@ -850,14 +801,27 @@ def render_corporal_sargent_combined(model: dict, out_file: Path) -> None:
     out_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def main() -> None:
-    model = json.loads(MODEL_PATH.read_text(encoding="utf-8"))
+def main(argv: list[str]) -> int:
+    """usage: render_spcoast_svgs.py [project.json] [--out DIR]"""
+    args = list(argv)
+    out_dir = OUT_DIR
+    if "--out" in args:
+        i = args.index("--out")
+        if i + 1 >= len(args):
+            print(main.__doc__, file=sys.stderr)
+            return 2
+        out_dir = Path(args[i + 1])
+        del args[i:i + 2]
+    if len(args) > 1 or any(a.startswith("-") for a in args):
+        print(main.__doc__, file=sys.stderr)
+        return 2
+    model = json.loads(Path(args[0] if args else MODEL_PATH).read_text(encoding="utf-8"))
     compress_christopher_geometry(model)
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-    render_full_corridor(model, OUT_DIR / "spcoast-full-corridor.svg")
-    render_full_corridor(model, OUT_DIR / "01-subdivision-corridor.svg")
-    render_corporal_sargent_combined(model, OUT_DIR / "spcoast-corporal-sargent.svg")
+    render_full_corridor(model, out_dir / "spcoast-full-corridor.svg")
+    render_full_corridor(model, out_dir / "01-subdivision-corridor.svg")
+    render_corporal_sargent_combined(model, out_dir / "spcoast-corporal-sargent.svg")
 
     details = [
         ("GCaltrain", "Gilroy Caltrain", "spcoast-01-gcaltrain.svg"),
@@ -868,11 +832,12 @@ def main() -> None:
         ("Sargent", "Sargent", "spcoast-06-sargent.svg"),
     ]
     for name, title, fname in details:
-        render_interlocking_detail(model, name, title, OUT_DIR / fname)
-    render_watsonville_detail(OUT_DIR / "spcoast-07-watsonville.svg")
+        render_interlocking_detail(model, name, title, out_dir / fname)
+    render_watsonville_detail(out_dir / "spcoast-07-watsonville.svg")
 
-    print("Rendered SPCoast corridor and interlocking SVGs with aligned swimlanes.")
+    print(f"Rendered SPCoast corridor and interlocking SVGs with aligned swimlanes into {out_dir}.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main(sys.argv[1:]))

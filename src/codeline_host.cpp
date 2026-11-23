@@ -1,23 +1,36 @@
 // The station host on a real MQTT broker: one station, built from its station
 // file, with real cores over simulated drivers behind their MQTT adapters, the
 // engine on the MQTT proxies, and the code line binding (StationHost.h), every
-// client a libmosquitto connection (MosquittoClient.h), time from the wall
-// clock.
+// client a libmosquitto connection (MosquittoClient.h). Plant time (what the
+// station's tick gets) is the wall clock passed through a SimClock (SimClock.h):
+// PAUSE, RUN, STEP <ms> and RATE <permille> on {simulation}/clock stop, step
+// and scale it, and the host states it retained on {simulation}/clock/{station}.
+// While plant time stands still the station is not ticked at all (nothing in
+// the plant moves; a control frame is still answered from the last scan), and
+// the MQTT connections are served as always.
+//
+// The debug and clock connections are informative: losing either never stops
+// the host; each connects again by itself (DebugChannel.h, SimClock.h).
 //
 //   build/codeline_host --station build/Corporal.station [--broker HOST:PORT]
 //                       [--time-locking-ms N] [--initial ROLE/ID=PAYLOAD ...]
-//                       [--simulation-channel TOPIC]
+//                       [--simulation-channel TOPIC] [--remote ROLE/ID ...]
 //
 // --time-locking-ms overrides the station file's time locking (a stopgap, see
 // tools/station_file.py) so a scenario need not wait 30 s. --initial applies a
 // simulation payload before power-on (--initial turnout/829=REVERSE).
 // --simulation-channel overrides the station file's simulation channel.
+// --remote names an appliance another host of the layout simulates (a track
+// circuit two stations share): this host binds to it and simulates nothing
+// for it (tools/run_layout.py passes it).
 //
 // Prints "ready" on stdout once the plant has made its first scan and every
-// client is connected. Stops cleanly on SIGINT or SIGTERM (the station's
-// indications and every appliance's /state read UNAVAILABLE, published by the
-// host itself), and exits 3 if any connection to the broker breaks (each will
-// has then been published).
+// client is connected. Stops on SIGINT or SIGTERM (exit 0), and exits 3 if a
+// connection the station needs breaks (any but debug and clock). However it
+// stops, no retained topic of this host is left reading live: every client
+// still connected says UNAVAILABLE itself on its retained topic (the
+// indications, debug/plant, the clock, every appliance's /state) before it
+// disconnects, and a client that lost its connection had its will published.
 #include <chrono>
 #include <csignal>
 #include <cstdio>
@@ -29,6 +42,7 @@
 #include <vector>
 
 #include "codeline/mqtt/MosquittoClient.h"
+#include "codeline/station/SimClock.h"
 #include "codeline/station/StationHost.h"
 
 using namespace codeline;
@@ -41,7 +55,8 @@ void onSignal(int) { g_stop = 1; }
 int usage() {
   std::fprintf(stderr,
                "usage: codeline_host --station FILE [--broker HOST:PORT] [--time-locking-ms N]\n"
-               "                     [--initial ROLE/ID=PAYLOAD ...] [--simulation-channel TOPIC]\n");
+               "                     [--initial ROLE/ID=PAYLOAD ...] [--simulation-channel TOPIC]\n"
+               "                     [--remote ROLE/ID ...]\n");
   return 2;
 }
 
@@ -70,6 +85,8 @@ int main(int argc, char** argv) {
       config.initial.emplace_back(v.substr(0, eq), v.substr(eq + 1));
     } else if (a == "--simulation-channel") {
       config.simulation_channel = v;
+    } else if (a == "--remote") {
+      config.remote.push_back(v);
     } else {
       return usage();
     }
@@ -83,27 +100,49 @@ int main(int argc, char** argv) {
     return 2;
   }
 
-  std::vector<mqtt::MosquittoClient*> clients;
-  station::StationHost station_host(spec, config, [&](const std::string&) {
+  // Every connection is served (pump); losing a needed one stops the host.
+  // The debug connection (and the clock's, below) is informative only.
+  std::vector<mqtt::MosquittoClient*> clients, needed;
+  const std::string debug_id = spec.chart.station + "-debug";
+  station::StationHost station_host(spec, config, [&](const std::string& id) {
     auto c = std::make_unique<mqtt::MosquittoClient>(host, port);
     clients.push_back(c.get());
+    if (id != debug_id) needed.push_back(c.get());
     return c;
   });
   const auto t0 = std::chrono::steady_clock::now();
-  auto now_ms = [&t0]() {
-    return 1000u + static_cast<uint32_t>(
-                       std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0)
-                           .count());
+  auto real_ms = [&t0]() {
+    return static_cast<uint32_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count());
   };
-  if (!station_host.start(error)) {
+  if (!station_host.start(error)) {  // nothing is connected yet
     std::fprintf(stderr, "codeline_host: %s\n", error.c_str());
     return 2;
   }
-  station_host.tick(now_ms());  // the plant's first scan; the code line field connects in it
+  mqtt::MosquittoClient clock_client(host, port);
+  clients.push_back(&clock_client);
+  station::ClockChannel clock(clock_client,
+                              config.simulation_channel.empty() ? spec.simulation_channel : config.simulation_channel,
+                              spec.chart.station, 1000);  // plant time starts at 1000 ms
+  // The one way out once anything is connected, whatever the reason.
+  auto stop = [&](int rc) {
+    station_host.shutdown();
+    clock.shutdown();
+    for (mqtt::MosquittoClient* c : clients) c->pump();
+    const auto& n = station_host.field().counts();
+    std::fprintf(stderr,
+                 "codeline_host: stopped; control frames applied %u, vital ignored %u, malformed %u, out of sync %u, "
+                 "retained dropped %u\n",
+                 n.applied, n.vital_ignored, n.malformed, n.out_of_sync, n.retained_dropped);
+    return rc;
+  };
+  clock.connect(spec.chart.station + "-clock");
+  uint32_t ticked_ms = clock.now(real_ms());
+  station_host.tick(ticked_ms);  // the plant's first scan; the code line field connects in it
   for (mqtt::MosquittoClient* c : clients) {
     if (!c->connected()) {
       std::fprintf(stderr, "codeline_host: no connection to the broker at %s:%d\n", host.c_str(), port);
-      return 3;
+      return stop(3);
     }
   }
   std::signal(SIGINT, onSignal);
@@ -112,28 +151,19 @@ int main(int argc, char** argv) {
               host.c_str(), port);
   std::fflush(stdout);
 
-  int rc = 0;
+  std::string said_mode = clock.clock().mode();
   while (!g_stop) {
+    for (mqtt::MosquittoClient* c : clients) c->pump();  // a clock command arrives here
+    const uint32_t now_ms = clock.now(real_ms());
+    if (clock.clock().mode() != said_mode) station_host.debug().say("clock " + (said_mode = clock.clock().mode()));
+    if (now_ms != ticked_ms) station_host.tick(ticked_ms = now_ms);  // plant time stands still: no scan
     for (mqtt::MosquittoClient* c : clients) c->pump();
-    station_host.tick(now_ms());
-    for (mqtt::MosquittoClient* c : clients) c->pump();
-    bool lost = false;
-    for (mqtt::MosquittoClient* c : clients) lost = lost || c->lost();
-    if (lost) {
-      std::fprintf(stderr, "codeline_host: lost the broker\n");
-      rc = 3;
-      break;
+    for (mqtt::MosquittoClient* c : needed) {
+      if (!c->lost()) continue;
+      std::fprintf(stderr, "codeline_host: lost the broker connection of %s\n", c->id().c_str());
+      return stop(3);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
-  if (rc == 0) {
-    station_host.shutdown();
-    for (mqtt::MosquittoClient* c : clients) c->pump();
-  }
-  const auto& n = station_host.field().counts();
-  std::fprintf(stderr,
-               "codeline_host: stopped; control frames applied %u, vital ignored %u, malformed %u, out of sync %u, "
-               "retained dropped %u\n",
-               n.applied, n.vital_ignored, n.malformed, n.out_of_sync, n.retained_dropped);
-  return rc;
+  return stop(0);
 }

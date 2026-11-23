@@ -33,6 +33,7 @@ public:
   SignalIndication confirmed() const { return healthy_ ? shown_ : SignalIndication::Stop; }
   bool provenStop() const { return healthy_ && shown_ == SignalIndication::Stop; }
   bool healthy() const { return healthy_; }
+  Health applianceHealth() const { return link_.health.health(); }  // informative (debug channel)
 
   void sample(uint32_t now_ms) {
     const bool healthy = admit(link_.health, mast_, now_ms);

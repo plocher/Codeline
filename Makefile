@@ -12,6 +12,9 @@
 # build/<Station>.station  a station's chart and plant, written from the project
 #                          file by tools/station_file.py; scenarios and the host
 #                          read it
+# build/<Station>.panel.json, build/panels.json
+#                          what the on-screen panel (web/) shows, written from the
+#                          project file by tools/panel_file.py
 
 CXX      ?= clang++
 CXXFLAGS ?= -std=c++17 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -g
@@ -38,11 +41,26 @@ check: build
 	for s in $(PY_SCENARIOS); do echo "$$s"; $(PYTHON) $$s || fail=1; done; \
 	if [ $$fail -eq 0 ]; then echo "ALL SCENARIOS PASSED"; else echo "SCENARIOS FAILED"; exit 1; fi
 
-build: $(STATIONS) $(CPP_PROGRAMS) build/codeline_host
+build: $(STATIONS) $(CPP_PROGRAMS) build/codeline_host build/panels.json
 
 build/%.station: tools/station_file.py tools/codeline_chart.py $(PROJECT)
 	@mkdir -p build
 	$(PYTHON) tools/station_file.py $(PROJECT) --station $* > $@.tmp && mv $@.tmp $@
+
+# The on-screen panel (web/) reads only these. build/panels.json lists the stations that derive
+# and is written together with every station's panel file; the pattern rule writes one.
+PANEL_TOOLS := tools/panel_file.py tools/trackplan.py tools/station_file.py tools/codeline_chart.py
+
+build/panels.json: $(PANEL_TOOLS) $(PROJECT)
+	@mkdir -p build
+	$(PYTHON) tools/panel_file.py $(PROJECT) --all build
+
+build/%.panel.json: $(PANEL_TOOLS) $(PROJECT)
+	@mkdir -p build
+	$(PYTHON) tools/panel_file.py $(PROJECT) --station $* > $@.tmp && mv $@.tmp $@
+
+# A second station beside Sargent for scenarios/shared_appliance.cpp (the two share sensor/01T).
+build: build/Christopher.station
 
 build/codeline_host: src/codeline_host.cpp $(HEADERS)
 	@mkdir -p build

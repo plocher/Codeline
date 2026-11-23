@@ -10,8 +10,13 @@ checked in process only).
 Then the transport itself (CodeLineMQTT.md 2 and 5, MQTT.md):
   - every indication frame reaches the office retained, at QoS 1;
   - the field subscribes to its controls at QoS 0 (read from the broker's own log);
-  - a clean stop (SIGTERM) leaves the indications and every appliance /state retained UNAVAILABLE;
-  - an abrupt stop (SIGKILL, a second host) leaves the same, through the wills alone.
+  - a clean stop (SIGTERM) leaves the indications, every appliance /state, the debug snapshot
+    ({station}/debug/plant) and the clock ({simulation}/clock/Corporal) retained UNAVAILABLE;
+  - losing the debug connection (another client takes its id) does not stop the host: the
+    indications stay live and the debug snapshot comes back by itself;
+  - losing a connection the station needs (the field's) stops the host with exit 3, and every
+    retained topic of it reads UNAVAILABLE;
+  - an abrupt stop (SIGKILL, another host) leaves the same, through the wills alone.
 
 The time locking is shortened to 3 s through the host's --time-locking-ms. Every process is
 stopped on the way out; a broker or host that does not come up fails the scenario at once
@@ -51,6 +56,8 @@ def station_topics() -> tuple[dict[str, str], list[str]]:
             states.append(f"{f[2]}/{f[3]}")
         elif f[0] == "switch":
             states.append(f"{f[3]}/{f[4]}")
+        elif f[0] == "call" and len(f) == 4:    # a maintainer call bound to a lamp
+            states.append(f"{f[2]}/{f[3]}")
     return channels, [f"{channels['appliances']}/{s}/state" for s in states]
 
 
@@ -197,6 +204,10 @@ def main() -> int:
         if not any(s.endswith(wanted) for s in subs):
             print(f"    the broker log shows the field subscribing {subs}, not {wanted!r}")
             ok = False
+        # Every retained topic of the host: its indications, every appliance's /state, its debug
+        # snapshot (DebugChannel.h) and its clock (SimClock.h).
+        retained = [replay.indications] + states + [replay.indications.rsplit("/", 1)[0] + "/debug/plant",
+                                                    f"{channels['simulation']}/clock/Corporal"]
         # Clean stop: the host says UNAVAILABLE itself, everywhere (exit 0). A will would read the
         # same, so the broker's log must show the host publishing each one (a will is not logged
         # as a received PUBLISH).
@@ -206,28 +217,71 @@ def main() -> int:
         if hosts[0].proc.returncode != 0:
             print(f"    after SIGTERM the host exited {hosts[0].proc.returncode}")
             ok = False
-        ok = all_unavailable(retained_all(url, [replay.indications] + states, None, 0), "SIGTERM") and ok
+        ok = all_unavailable(retained_all(url, retained, None, 0), "SIGTERM") and ok
         said = log.read_text(errors="replace").splitlines()[before:]
-        for t in [replay.indications] + states:
+        for t in retained:
             if not any("Received PUBLISH from" in line and " r1," in line and f"'{t}'" in line
                        and line.endswith(f"({len('UNAVAILABLE')} bytes))") for line in said):
                 print(f"    after SIGTERM the host never published UNAVAILABLE on {t} itself")
                 ok = False
-        # Abrupt loss: a second host runs until every appliance and the station have stated
-        # themselves, then is killed; the wills alone must say UNAVAILABLE.
-        hosts.append(Host(url, []))
-        if not hosts[1].wait_ready():
+        def start_stated() -> Host | None:
+            """Another host, running until every appliance, the station, its debug snapshot and its
+            clock have stated themselves."""
+            h = Host(url, [])
+            hosts.append(h)
+            if not h.wait_ready():
+                return None
+            deadline = time.monotonic() + 10
+            live = retained_all(url, retained, None, 0)
+            while any(v in (None, "UNAVAILABLE") for v in live.values()) and time.monotonic() < deadline:
+                live = retained_all(url, retained, None, 0)
+            if any(v in (None, "UNAVAILABLE") for v in live.values()):
+                print(f"    a host never stated everything: {live}")
+                return None
+            return h
+
+        # The debug connection is informative: taking it away (another client with its id) does
+        # not stop the host, the indications stay live, and the snapshot comes back by itself.
+        debug_plant = retained[-2]
+        h = start_stated()
+        if h is None:
             return fail(transport)
-        live = retained_all(url, [replay.indications] + states, None, 0)
-        deadline = time.monotonic() + 10
-        while any(v in (None, "UNAVAILABLE") for v in live.values()) and time.monotonic() < deadline:
-            live = retained_all(url, [replay.indications] + states, None, 0)
-        if any(v in (None, "UNAVAILABLE") for v in live.values()):
-            print(f"    the second host never stated everything: {live}")
+        codeline_office.Link(url, "Corporal-debug").close()
+        gone = retained_all(url, [debug_plant], "UNAVAILABLE", 1).get(debug_plant)
+        back = retained_all(url, [debug_plant, replay.indications], None, 0)
+        deadline = time.monotonic() + 8
+        while back[debug_plant] in (None, "UNAVAILABLE") and time.monotonic() < deadline:
+            back = retained_all(url, [debug_plant, replay.indications], None, 0)
+        if h.proc.poll() is not None:
+            print(f"    losing the debug connection stopped the host (exit {h.proc.returncode})")
             ok = False
-        hosts[1].proc.kill()
-        hosts[1].proc.wait(5)
-        ok = all_unavailable(retained_all(url, [replay.indications] + states, "UNAVAILABLE", 5), "SIGKILL") and ok
+        if gone != "UNAVAILABLE":
+            print(f"    after the debug connection was taken, {debug_plant} read {gone!r}, not its will")
+            ok = False
+        if back[debug_plant] in (None, "UNAVAILABLE") or back[replay.indications] in (None, "UNAVAILABLE"):
+            print(f"    after the debug connection was taken and 8 s: {back}")
+            ok = False
+        # A connection the station needs: taking the field's stops the host (exit 3), and no
+        # retained topic of it is left reading live.
+        thief = codeline_office.Link(url, "Corporal-field")
+        try:
+            h.proc.wait(5)
+        except subprocess.TimeoutExpired:
+            print("    losing the field connection did not stop the host")
+            ok = False
+        if h.proc.returncode != 3:
+            print(f"    after losing the field connection the host exited {h.proc.returncode}, not 3")
+            ok = False
+        ok = all_unavailable(retained_all(url, retained, "UNAVAILABLE", 5), "the field connection was lost") and ok
+        thief.close()
+        # Abrupt loss: another host runs until everything is stated, then is killed; the wills
+        # alone must say UNAVAILABLE.
+        h = start_stated()
+        if h is None:
+            return fail(transport)
+        h.proc.kill()
+        h.proc.wait(5)
+        ok = all_unavailable(retained_all(url, retained, "UNAVAILABLE", 5), "SIGKILL") and ok
         r1 = passed(name) if walkthrough_ok else fail(name)
         r2 = passed(transport) if ok else fail(transport)
         return r1 or r2

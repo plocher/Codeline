@@ -1,6 +1,6 @@
 // Cluster:MAINTENANCE for a Reference Appliance Core, written once: gates,
 // attributes and NV, identify, faults, and the RESTART BEHAVIOR sequence of
-// docs/clusters/README.Clusters.md. SensorCore, MastCore and ControlCore
+// docs/clusters/README.Clusters.md. SensorCore, MastCore, ControlCore and LampCore
 // derive from it and supply the domain half through the hooks below.
 // (TurnoutCore predates this base and still carries its own copy.)
 //
@@ -155,6 +155,11 @@ protected:
   bool isOffline() const { return values_[kOffline] != 0; }
   static constexpr int idx(Attr a) { return static_cast<int>(a); }
   uint32_t get(Attr a) const { return values_[idx(a)]; }
+
+  // A volatile attribute that is the domain half's own state seen as an
+  // attribute (onoff.on): the domain half keeps it current here. No event, no
+  // NV write and no onStored().
+  void mirror(Attr a, uint32_t v) { values_[idx(a)] = v; }
 
   // Only faults the schema lets this appliance raise compile.
   template <FaultType T>

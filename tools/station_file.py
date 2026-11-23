@@ -32,7 +32,8 @@ Record grammar (one record per line, fields separated by spaces, `#` starts a co
     lock <name> <role> <id> switches=<s1,s2,...> nv=<path:value,...>
     lever <name> time_locking_ms=<n>
     mast <name> <role> <id> nv=mast.heads:<n>
-    call <name>
+    call <name> <role> <id>             a maintainer call and the lamp it lights
+    call <name>                         a maintainer call with no lamp in the project file
     contact <name> <role> <id>          a field contact shown to the office as a lamp
     lamp <name>                         a chart lamp with no source in the project file: dark
     route <name> mast=<mast> presents=<i1,...> caps=<i1,...|-> levers=<lever:DIR,...>
@@ -69,6 +70,10 @@ Plant rules (what this tool derives, and how):
     * a route whose ceiling (that least) is not an indication its mast presents is no route and
       is dropped: the engine would line and lock it, and the mast could never show it.
 - Circuits: the circuits any route or switch uses.
+- Maintainer calls: the maintainer_call functions of the chart. A call is bound to a lamp when a
+  house of the interlocking names it (relations.maintainerCall) and exactly one field device of
+  Appliance `lamp` serves it (derived.serves); the lamp's id is <interlocking>:<given.Name>
+  (STOPGAP id.lamp).
 
 Everything the engine needs that the project file does not state is in STOPGAPS below, and only
 there. Each stopgap is repeated as a comment in the file it writes.
@@ -98,13 +103,18 @@ STOPGAPS = {
         "and tool that drives it read it from the station file."),
     "role": (
         {"track_circuit": "sensor", "switch": "turnout", "mast": "signalmast", "lock": "control",
-         "contact": "sensor"},
+         "contact": "sensor", "lamp": "lamp"},
         "The project file gives an appliance kind (given.Appliance), not its Smart Appliance role; "
         "this mapping follows docs/appliances/README.Appliances.md."),
     "id.lock": (
         "lock:{name}",
         "The lock lever device has Name 827; its CONTROL id lock:827 is the example of "
         "docs/bindings/MQTT.md section 5a, not a project-file fact."),
+    "id.lamp": (
+        "{interlocking}:{name}",
+        "The maintainer call lamp device has Name 1MC in every interlocking; each station has its "
+        "own lamp, so its LAMP id is qualified by the interlocking (Corporal:1MC), in the style of "
+        "lock:827. The project file states no appliance id."),
     "lock.nv": (
         "lever.inputs:1,lever.outputs:1,button.inputs:1,button.mode:LEVEL",
         "MQTT.md section 5a's lock:827 profile (SW1 lock open, BTN1 request, LAMP1 release lamp). "
@@ -226,6 +236,26 @@ class Station:
             self.problems.append(f"mast {mast}: {len(found)} signal joints name it; need exactly one")
             return None
         return found[0]
+
+    def call_lamp(self, call: str) -> str | None:
+        """The id of the lamp a maintainer call lights: <interlocking>:<Name> of the one field
+        device of Appliance lamp that serves it, when a house of the interlocking names the call
+        as its maintainer call. None: the project file gives the call no lamp."""
+        qualified = f"{self.ix_name}:{call}"
+        houses = [h for h in self.ix.get("houses", {}).values()
+                  if h.get("relations", {}).get("maintainerCall") == qualified]
+        if not houses:
+            return None
+        devices = [d for d in self.ix.get("devices", []) if d.get("given", {}).get("Appliance") == "lamp"
+                   and d.get("derived", {}).get("serves") == qualified]
+        if len(devices) > 1:
+            self.problems.append(f"call {call}: {len(devices)} lamp devices serve it; need at most one")
+            return None
+        name = devices[0].get("given", {}).get("Name") if devices else None
+        if devices and (not name or " " in name or "/" in name or " " in self.ix_name or "/" in self.ix_name):
+            self.problems.append(f"call {call}: its lamp device has no usable Name ({name!r})")
+            return None
+        return stopgap("id.lamp").format(interlocking=self.ix_name, name=name) if name else None
 
     # -- the track graph
 
@@ -487,7 +517,8 @@ class Station:
             heads = [h for h in masts[n]["given"].get("heads", "").split(",") if h]
             out.append(f"mast {n} {roles['mast']} {n} nv=mast.heads:{len(heads)}")
         for c in calls:
-            out.append(f"call {c}")
+            lamp = self.call_lamp(c)
+            out.append(f"call {c} {roles['lamp']} {lamp}" if lamp else f"call {c}")
         lamp_fns = [f["appliance"] for f in ch["indications"] if f["class"] == "lamp"]
         for n in lamp_fns:
             kind = self.apps.get(n, {}).get("given", {}).get("Appliance")

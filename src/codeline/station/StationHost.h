@@ -1,7 +1,7 @@
 // One station, simulated end to end, behind both interfaces:
 //
 //   office ──code line MQTT──▶ CodeLineField ─▶ engine::Plant
-//                                                   │ ITurnout / ISensor / IMast / IControl
+//                                                   │ ITurnout / ISensor / IMast / IControl / ILamp
 //                                                   ▼
 //                                        Mqtt*Proxy ──MQTT──▶ Mqtt*Adapter ─▶ *Core ─▶ Simulated*Driver
 //
@@ -21,18 +21,33 @@
 //   {simulation}/{role}/{id}    (POWER) | POWER        any appliance loses power (its /state reads
 //                                                      UNAVAILABLE, as its will would say) / is powered again
 //
-// {simulation} is the station file's simulation channel. Retained simulation
+// A lamp (a maintainer call's) has no physical input: its simulation topic
+// {simulation}/lamp/{id} takes (POWER) | POWER only.
+//
+// An appliance that two stations both read (a track circuit between them) is
+// one appliance on the wire, so one host simulates it and every other host of
+// the layout is told it is remote (HostConfig::remote): that host binds its
+// engine to the appliance's topics and simulates nothing for it.
+//
+// {simulation} is the station file's simulation channel. The real host also
+// serves {simulation}/clock there (pause, step and scale plant time, SimClock.h). Retained simulation
 // messages are dropped, as commands are. HostConfig::initial applies the same
 // payloads before power-on (the plant as found at start).
 //
+// The station's debug channel ({codeline}/{station}/debug and .../debug/plant,
+// DebugChannel.h) says what the vital logic did and why. Informative only.
+//
 // tick(now_ms): drivers, cores and adapters, then the plant, then the code
-// line (which publishes indications that changed). Time enters only here.
+// line (which publishes indications that changed), then the debug channel.
+// Time enters only here. A host that wants plant time paused, stepped or
+// scaled does it before calling tick (SimClock.h).
 // The code line field connects and subscribes in the first tick, after the
 // plant's first scan (which finalizes it): no control frame is read by a plant
 // that has not started.
 //
-// shutdown(): the station's indications and every appliance's /state read
-// UNAVAILABLE, retained, as their wills would on an abrupt loss.
+// shutdown(): the station's indications, its debug/plant snapshot and every
+// appliance's /state read UNAVAILABLE, retained, as their wills would on an
+// abrupt loss.
 #pragma once
 
 #include <cstdint>
@@ -45,6 +60,7 @@
 
 #include "codeline/appliance/ControlCore.h"
 #include "codeline/appliance/INvStore.h"
+#include "codeline/appliance/LampCore.h"
 #include "codeline/appliance/MastCore.h"
 #include "codeline/appliance/SensorCore.h"
 #include "codeline/appliance/TurnoutCore.h"
@@ -53,15 +69,18 @@
 #include "codeline/generated/MqttTables.h"
 #include "codeline/mqtt/IMqttClient.h"
 #include "codeline/mqtt/MqttControl.h"
+#include "codeline/mqtt/MqttLamp.h"
 #include "codeline/mqtt/MqttMast.h"
 #include "codeline/mqtt/MqttSensor.h"
 #include "codeline/mqtt/MqttTurnoutAdapter.h"
 #include "codeline/mqtt/MqttTurnoutProxy.h"
 #include "codeline/sim/SimulatedControlDriver.h"
+#include "codeline/sim/SimulatedLampDriver.h"
 #include "codeline/sim/SimulatedMastDriver.h"
 #include "codeline/sim/SimulatedSensorDriver.h"
 #include "codeline/sim/SimulatedTurnoutDriver.h"
 #include "codeline/station/CodeLineField.h"
+#include "codeline/station/DebugChannel.h"
 #include "codeline/station/StationFile.h"
 
 namespace codeline::station {
@@ -74,6 +93,8 @@ struct HostConfig {
   uint32_t head_move_ms = 300;
   // Simulation payloads applied before power-on: {"turnout/829", "REVERSE"}.
   std::vector<std::pair<std::string, std::string>> initial;
+  // Appliances another host simulates ("sensor/01T"): bound, not simulated here.
+  std::vector<std::string> remote;
 };
 
 using ClientFactory = std::function<std::unique_ptr<mqtt::IMqttClient>(const std::string& client_id)>;
@@ -96,13 +117,25 @@ public:
     field_client_ = factory_(spec_.chart.station + "-field");
     field_ = std::make_unique<CodeLineField>(*field_client_, spec_.chart, plant_, spec_.codeline_channel);
     if (!field_->verify(error)) return false;
+    debug_client_ = factory_(spec_.chart.station + "-debug");
+    debug_ = std::make_unique<DebugChannel>(*debug_client_, plant_, spec_.codeline_channel, spec_.chart.station);
+    field_->onFrame([this](CodeLineField::Outcome o, const std::string& why) {
+      debug_->controlFrame(o, why);
+      debug_->refresh();  // a stored demand may have changed, between ticks or while paused
+    });
+    for (const std::string& r : config_.remote)
+      if (!hasAppliance(r)) return error = "remote " + r + " is no appliance of station " + spec_.chart.station, false;
     for (const auto& [suffix, payload] : config_.initial) {
+      if (isRemote(suffix))
+        return error = "initial " + suffix + " " + payload + ": " + suffix +
+                       " is remote (another host simulates it; give that host the initial)", false;
       if (!simulate(suffix, payload)) return error = "initial " + suffix + " " + payload + " is not understood", false;
     }
     for (auto& u : sensors_) connectUnit(*u);
     for (auto& u : turnouts_) connectUnit(*u);
     for (auto& u : controls_) connectUnit(*u);
     for (auto& u : masts_) connectUnit(*u);
+    for (auto& u : lamps_) connectUnit(*u);
     sim_client_ = factory_(spec_.chart.station + "-simulation");
     sim_client_->connect(spec_.chart.station + "-simulation", nullptr);
     for (const std::string& t : simTopics()) sim_client_->subscribe(t, this);
@@ -114,49 +147,58 @@ public:
     for (auto& u : turnouts_) u->tick(now_ms);
     for (auto& u : controls_) u->tick(now_ms);
     for (auto& u : masts_) u->tick(now_ms);
+    for (auto& u : lamps_) u->tick(now_ms);
     plant_.tick(now_ms);
     if (!field_connected_) {  // after the plant's first scan (see above)
       field_->connect(spec_.chart.station + "-field");
+      debug_->connect(spec_.chart.station + "-debug");
       field_connected_ = true;
     }
     field_->tick();
+    debug_->tick(now_ms);
   }
 
-  // Clean stop: the station and every appliance say UNAVAILABLE themselves
-  // (retained, what their wills say), then every client disconnects. The
-  // engine's clients go first, so the plant never reads an appliance's goodbye.
+  // The host stops, cleanly or because it lost something it needs: every
+  // client still connected says UNAVAILABLE itself on its retained topic (what
+  // its will says; a client that lost its connection had its will published by
+  // the broker), then disconnects. The engine's clients go first, so the plant
+  // never reads an appliance's goodbye.
   void shutdown() {
     if (field_) field_->shutdown();
+    if (debug_) debug_->shutdown();
     for (auto& u : sensors_) u->engine_client->disconnect();
     for (auto& u : turnouts_) u->engine_client->disconnect();
     for (auto& u : controls_) u->engine_client->disconnect();
     for (auto& u : masts_) u->engine_client->disconnect();
+    for (auto& u : lamps_) u->engine_client->disconnect();
     for (auto& u : sensors_) goodbye(*u);
     for (auto& u : turnouts_) goodbye(*u);
     for (auto& u : controls_) goodbye(*u);
     for (auto& u : masts_) goodbye(*u);
+    for (auto& u : lamps_) goodbye(*u);
     if (sim_client_) sim_client_->disconnect();
   }
 
   engine::Plant& plant() { return plant_; }
   CodeLineField& field() { return *field_; }
+  DebugChannel& debug() { return *debug_; }
 
   // One simulation payload for "{role}/{id}"; false if not understood.
   bool simulate(std::string_view suffix, std::string_view payload) {
     if (payload == "POWER" || payload == "(POWER)") return power(suffix, payload == "POWER");
     for (auto& u : sensors_) {
-      if (suffix != u->suffix()) continue;
+      if (suffix != u->suffix() || u->remote()) continue;
       if (payload == "SHUNT" || payload == "(SHUNT)") return u->driver.shunt(payload == "SHUNT"), true;
       return false;
     }
     for (auto& u : turnouts_) {
-      if (suffix != u->suffix()) continue;
+      if (suffix != u->suffix() || u->remote()) continue;
       if (payload == "NORMAL") return u->driver.handThrow(SimulatedTurnoutDriver::Points::Normal), true;
       if (payload == "REVERSE") return u->driver.handThrow(SimulatedTurnoutDriver::Points::Reverse), true;
       return false;
     }
     for (auto& u : controls_) {
-      if (suffix != u->suffix()) continue;
+      if (suffix != u->suffix() || u->remote()) continue;
       uint8_t k = 0;
       bool on = false;
       if (indexed(payload, "SW", k, on)) return u->driver.setSwitch(k, on), true;
@@ -183,7 +225,9 @@ private:
     std::unique_ptr<Proxy> proxy;
 
     std::string suffix() const { return role + "/" + id; }
+    bool remote() const { return adapter == nullptr; }  // another host simulates it
     void tick(uint32_t now_ms) {
+      if (remote()) return;
       driver.tick(now_ms);
       core.tick(now_ms);
       adapter->tick(now_ms);
@@ -193,6 +237,7 @@ private:
   using TurnoutUnit = Unit<SimulatedTurnoutDriver, TurnoutCore, mqtt::MqttTurnoutAdapter, mqtt::MqttTurnoutProxy>;
   using ControlUnit = Unit<SimulatedControlDriver, ControlCore, mqtt::MqttControlAdapter, mqtt::MqttControlProxy>;
   using MastUnit = Unit<SimulatedMastDriver, MastCore, mqtt::MqttMastAdapter, mqtt::MqttMastProxy>;
+  using LampUnit = Unit<SimulatedLampDriver, LampCore, mqtt::MqttLampAdapter, mqtt::MqttLampProxy>;
 
   const StationSpec& spec_;
   HostConfig config_;
@@ -202,22 +247,44 @@ private:
   std::vector<std::unique_ptr<TurnoutUnit>> turnouts_;
   std::vector<std::unique_ptr<ControlUnit>> controls_;
   std::vector<std::unique_ptr<MastUnit>> masts_;
-  std::unique_ptr<mqtt::IMqttClient> field_client_, sim_client_;
+  std::vector<std::unique_ptr<LampUnit>> lamps_;
+  std::unique_ptr<mqtt::IMqttClient> field_client_, sim_client_, debug_client_;
   std::unique_ptr<CodeLineField> field_;
+  std::unique_ptr<DebugChannel> debug_;
   bool field_connected_ = false;
 
   // ---- appliances ----------------------------------------------------------------
 
+  bool isRemote(std::string_view suffix) const {
+    for (const std::string& r : config_.remote)
+      if (r == suffix) return true;
+    return false;
+  }
+  bool hasAppliance(std::string_view suffix) const {
+    bool found = false;
+    auto look = [&](const auto& units) {
+      for (auto& u : units) found = found || suffix == u->suffix();
+    };
+    look(sensors_);
+    look(turnouts_);
+    look(controls_);
+    look(masts_);
+    look(lamps_);
+    return found;
+  }
+
   template <class U>
   void wire(U& u) {
-    u.appliance_client = factory_(spec_.appliance_channel + "/" + u.suffix());
+    const std::string topic = spec_.appliance_channel + "/" + u.suffix();
     u.engine_client = factory_(spec_.chart.station + "-engine-" + u.role + "-" + u.id);
+    u.proxy = std::make_unique<typename U::ProxyType>(*u.engine_client, topic);
+    if (isRemote(u.suffix())) return;
+    u.appliance_client = factory_(topic);
     u.adapter = std::make_unique<typename U::AdapterType>(*u.appliance_client, spec_.appliance_channel, u.id, u.core);
-    u.proxy = std::make_unique<typename U::ProxyType>(*u.engine_client, u.adapter->applianceTopic());
   }
   template <class U>
   void connectUnit(U& u) {
-    u.adapter->connect();
+    if (!u.remote()) u.adapter->connect();
     u.proxy->connect(spec_.chart.station + "-engine-" + u.role + "-" + u.id);
   }
   // Power lost: the appliance's /state reads UNAVAILABLE, as its will would
@@ -237,12 +304,13 @@ private:
     apply(turnouts_);
     apply(controls_);
     apply(masts_);
+    apply(lamps_);
     return found && sim_client_ != nullptr;
   }
 
   template <class U>
   static void goodbye(U& u) {
-    if (!u.appliance_client->connected()) return;
+    if (u.remote() || !u.appliance_client->connected()) return;
     u.appliance_client->publish(std::string(u.adapter->applianceTopic()) + "/" + mqtt::kWillTopic, mqtt::kWillPayload,
                                 mqtt::kWillRetained);
     u.appliance_client->disconnect();
@@ -299,6 +367,12 @@ private:
       wire(*masts_.back());
       if (!applyNv(masts_.back()->nv, kSignalmastAttributeTable, m.nv, error, "mast " + m.name)) return false;
     }
+    for (const CallSpec& c : spec_.calls) {
+      if (c.role.empty()) continue;  // a call with no lamp
+      if (!roleIs(c.role, kLampRole, error, "call " + c.name)) return false;
+      lamps_.push_back(std::make_unique<LampUnit>(c.role, c.id));
+      wire(*lamps_.back());
+    }
     return true;
   }
 
@@ -352,7 +426,10 @@ private:
       plant_.addSignalLever(lv.name).setTimeLockingMs(config_.time_locking_ms ? config_.time_locking_ms
                                                                               : lv.time_locking_ms);
     for (const MastSpec& m : spec_.masts) plant_.addMast(m.name, *unit(masts_, m.role, m.id)->proxy);
-    for (const std::string& c : spec_.calls) plant_.addMaintainerCall(c);
+    for (const CallSpec& c : spec_.calls) {
+      if (c.role.empty()) plant_.addMaintainerCall(c.name);
+      else plant_.addMaintainerCall(c.name, *unit(lamps_, c.role, c.id)->proxy);
+    }
     for (const CircuitSpec& c : spec_.contacts) plant_.addContact(c.name, *unit(sensors_, c.role, c.id)->proxy);
     for (const std::string& l : spec_.unbound_lamps) plant_.addUnboundLamp(l);
     for (const RouteSpec& rs : spec_.routes) {
@@ -401,10 +478,15 @@ private:
 
   std::vector<std::string> simTopics() const {
     std::vector<std::string> out;
-    for (auto& u : sensors_) out.push_back(config_.simulation_channel + "/" + u->suffix());
-    for (auto& u : turnouts_) out.push_back(config_.simulation_channel + "/" + u->suffix());
-    for (auto& u : controls_) out.push_back(config_.simulation_channel + "/" + u->suffix());
-    for (auto& u : masts_) out.push_back(config_.simulation_channel + "/" + u->suffix());
+    auto add = [&](const auto& units) {
+      for (auto& u : units)
+        if (!u->remote()) out.push_back(config_.simulation_channel + "/" + u->suffix());
+    };
+    add(sensors_);
+    add(turnouts_);
+    add(controls_);
+    add(masts_);
+    add(lamps_);
     return out;
   }
 

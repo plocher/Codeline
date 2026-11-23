@@ -26,6 +26,26 @@ enum class Position : uint8_t {
 // A signal lever's direction. None is a lever at STOP (HSR down).
 enum class Direction : uint8_t { None, Left, Right };
 
+// Names for people (the debug channel, StationHost.h); nothing reads them back.
+inline const char* positionName(Position p) {
+  switch (p) {
+    case Position::Unknown: return "UNKNOWN";
+    case Position::Normal: return "NORMAL";
+    case Position::Reverse: return "REVERSE";
+    case Position::InTransit: return "IN_TRANSIT";
+    case Position::Substituted: return "UNHEALTHY";
+  }
+  return "?";
+}
+inline const char* directionName(Direction d) {
+  switch (d) {
+    case Direction::None: return "STOP";
+    case Direction::Left: return "LEFT";
+    case Direction::Right: return "RIGHT";
+  }
+  return "?";
+}
+
 // Switch lock bits (FieldUnit SwitchLock). A switch may be commanded only
 // while it has none (WLR up).
 namespace lock {

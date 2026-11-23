@@ -56,6 +56,14 @@ public:
   bool granted() const { return granted_; }
   bool requested() const { return request_; }
 
+  // Informative (debug channel); no vital logic reads these.
+  Health applianceHealth() const { return link_.health.health(); }
+  bool healthy() const { return healthy_; }
+  bool open() const { return open_; }
+  // The release lamp off was sent and is not yet old enough to count as withdrawn.
+  bool withdrawing() const { return withdrawal_sent_ && !withdrawn_; }
+  uint32_t withdrawalElapsedMs() const { return since_withdrawal_; }
+
   uint32_t withdrawalMs() const { return withdrawal_ms_; }
   void setWithdrawalMs(uint32_t ms) { withdrawal_ms_ = ms; }
 

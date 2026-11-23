@@ -1,0 +1,17 @@
+{
+  "$comment": "Appliance:LAMP. Source: docs/appliances/README.Appliances.md. This slice is the binary lamp (the maintainer call lamp of a control point): MAINTENANCE and ON/OFF. DIMMING, COLOR and GROUPS are optional in the catalog and not part of this slice. The curated {channel}/all LIGHT ON | OFF | DIM | COLOR commands of docs/bindings/MQTT.md section 3 are not part of this slice either: this lamp ignores them.",
+  "appliance": "LAMP",
+  "role": "lamp",
+  "clusters": {
+    "required": [
+      "MAINTENANCE",
+      "ON/OFF"
+    ],
+    "optional": [
+      "DIMMING",
+      "COLOR",
+      "GROUPS"
+    ]
+  },
+  "startup": "Initialize to on = false and report on = false."
+}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codeline panel</title>
+<link rel="stylesheet" href="panel.css">
+</head>
+<body>
+
+<header>
+  <h1>Codeline</h1>
+  <div class="links">
+    <span>broker <code id="broker-url"></code></span>
+    <span id="office-link" class="link">code line: —</span>
+    <span id="clock-link" class="link">simulation: —</span>
+  </div>
+  <div class="clock">
+    <span class="clock-title">clock</span>
+    <button id="clock-pause">Pause</button>
+    <button id="clock-run">Run</button>
+    <button id="clock-step">Step</button>
+    <input id="clock-step-ms" type="number" min="1" step="100" value="1000" title="Step, in milliseconds of plant time"> ms
+    <label>Rate <select id="clock-rate" title="What the hosts report; choose to change it"></select></label>
+    <span id="clock-note" class="note"></span>
+    <span id="clock-state"></span>
+    <span id="clock-hint" class="clock-hint" hidden>Paused: the plant is not scanned, so a shunt, a throw or a CODE shows only after the next Step or Run.</span>
+  </div>
+</header>
+
+<p id="problem" class="problem" hidden></p>
+
+<section id="office">
+  <div class="bar">
+    <h2>Office</h2>
+    <button id="code-all" title="One control frame to every station that is current, each built from its own levers">CODE all stations</button>
+    <button id="office-window" title="Open the office alone in another window (its own connections)">Own window</button>
+    <span class="hint">A station's levers are found where the field is, on its first indication frame; after that only you move them, and CODE sends them. Lamps come only from the field's indications. An amber lever is out of correspondence with its lamps.</span>
+  </div>
+  <p id="not-derived" class="note"></p>
+  <div id="machine"></div>
+  <h3>Code line traffic <span class="hint">newest first · <span class="term asserted">ASSERTED</span> <span class="term dropped">(dropped)</span> <span class="term asserted changed">changed since this station's previous frame</span></span></h3>
+  <div id="traffic"></div>
+</section>
+
+<section id="field">
+  <div class="bar"><h2>Field</h2>
+    <button id="field-window" title="Open the field alone in another window (its own connections), and fold it away here">Own window</button>
+    <button id="field-fold" title="Fold the field away here, or show it again">Hide here</button>
+    <span class="hint">one tab per station: the interlocking on the ground, from its appliances' own state (a tab also brings that station's levers into view above)</span></div>
+  <div id="tabs"></div>
+  <div id="tabpanels"></div>
+</section>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>

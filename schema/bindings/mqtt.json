@@ -52,6 +52,7 @@
         "ConfigEvent":      "CONFIG"
       }
     },
+    "ON/OFF": { "$comment": "MQTT.md section 3 (root LAMP): /cmd ON | (ON); /state ON | (ON).", "on": "ON" },
     "SENSOR": { "$comment": "MQTT.md section 3: /state ACTIVE | (ACTIVE).", "active": "ACTIVE" },
     "MAST": { "$comment": "MQTT.md sections 2-3: /cmd <INDICATION> [LIT|(LIT)] | LIT | (LIT); /state <INDICATION> | <INDICATION> (LIT). Indication words are the SignalIndication names.", "lit": "LIT" },
     "LEVER": { "$comment": "MQTT.md sections 2-3: /state SW1 (SW2) ... SW<N>; /cmd LAMP1 (LAMP2) ... LAMP<M>; all-or-nothing.", "switch": "SW", "lamp": "LAMP" },

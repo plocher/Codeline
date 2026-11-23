@@ -60,6 +60,12 @@ public:
   Position demand() const { return demand_; }  // Unknown: no demand (hand switch, or none yet)
   bool healthy() const { return healthy_; }
 
+  // Informative (debug channel); no vital logic reads these.
+  Health applianceHealth() const { return link_.health.health(); }
+  bool timedOut() const { return timed_out_; }  // the demand was not reached within the travel timeout
+  uint32_t travelTimeoutMs() const { return travel_timeout_ms_; }
+  uint32_t travelElapsedMs() const { return travel_; }
+
   // KR. Power: reported equals the demand at a locked end. Hand: at a locked end.
   bool inCorrespondence() const {
     if (!atEnd(reported_)) return false;
@@ -127,15 +133,16 @@ public:
   // this scan's locks forbid (a train reached the OS between the frame and
   // this scan) is dropped, back to the last command sent. Nothing is sent
   // to an unhealthy appliance ("withholds operational /cmd", Walkthrough
-  // section 2).
-  void drive() {
-    if (kind_ != Kind::Power || !healthy_ || !atEnd(demand_) || demand_ == last_sent_) return;
+  // section 2). True if a demand was dropped (so the plant can say so).
+  bool drive() {
+    if (kind_ != Kind::Power || !healthy_ || !atEnd(demand_) || demand_ == last_sent_) return false;
     if (!WLR()) {
       demand_ = last_sent_;
-      return;
+      return true;
     }
     turnout_.setAlignment(demand_ == Position::Normal ? TurnoutCommand::Normal : TurnoutCommand::Reverse);
     last_sent_ = demand_;
+    return false;
   }
 
 private:

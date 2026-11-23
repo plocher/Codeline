@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "properties": {
     "$comment": { "type": "string" },
-    "cluster": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+    "cluster": { "type": "string", "pattern": "^[A-Z][A-Z0-9_/]*$" },
     "prefix": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
     "enums": {
       "type": "object",
