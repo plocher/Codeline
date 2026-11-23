@@ -1,0 +1,14 @@
+# Python tooling only (generators, the chart deriver, Python scenarios).
+# Managed with uv:  `make check` runs everything through `uv run`.
+[project]
+name = "codeline-tools"
+version = "0"
+description = "Codeline generators, chart deriver and scenario tools"
+requires-python = ">=3.11"
+dependencies = [
+    "jsonschema>=4",
+    "paho-mqtt>=2.2.0",
+]
+
+[tool.uv]
+package = false
