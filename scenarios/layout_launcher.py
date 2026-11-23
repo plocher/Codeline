@@ -112,10 +112,12 @@ def main() -> int:
         check(f"the address line is not {want!r}: {[x for x in lines if ' open ' in x]}", want in lines)
         base = f"http://127.0.0.1:{http}"
         for path, code in (("/web/", 200), ("/build/Corporal.panel.json", 200), ("/build/panels.json", 200),
-                           ("/.git/config", 404), ("/Makefile", 404), ("/", 404), ("/build/Corporal.station", 404),
+                           ("/.git/config", 404), ("/Makefile", 404), ("/build/Corporal.station", 404),
                            ("/tools/run_layout.py", 404)):
             got = status(base + path)
             check(f"GET {path} gave {got}, not {code}", got == code)
+        got = raw_status(http, "/")
+        check(f"GET / gave {got}, not the 302 to /web/", got == 302)
         for path in ("/web/../.git/config", "/web/%2e%2e/.git/config", "/build/../.git/config"):
             got = raw_status(http, path)
             check(f"GET {path} gave {got}, not 404", got == 404)

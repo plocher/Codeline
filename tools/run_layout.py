@@ -148,12 +148,18 @@ def appliances(station: str) -> list[str]:
 
 
 class Page(http.server.SimpleHTTPRequestHandler):
-    """/web/ and /build/*.json of the repository and nothing else; never cached (a rebuilt panel
+    """/web/ and /build/*.json of the repository and nothing else (/ redirects to /web/); never cached (a rebuilt panel
     file is fetched again); no request log."""
 
     def send_head(self):
         # Decided on the path as it will be resolved ("/web/../.git/config" is "/.git/config").
         path = posixpath.normpath(urllib.parse.unquote(self.path.split("?", 1)[0].split("#", 1)[0]))
+        if path == "/":                                # the bare address: the page
+            self.send_response(302)
+            self.send_header("Location", "/web/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return None
         if not (path == "/web" or path.startswith("/web/") or re.fullmatch(r"/build/[^/]+\.json", path)):
             self.send_error(404, "Not found")
             return None

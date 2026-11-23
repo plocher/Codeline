@@ -16,7 +16,9 @@ import { MqttClient } from "./mqtt.js";
 import { Office } from "./office.js";
 import { FieldView } from "./field.js";
 
-const DEFAULT_BROKER = "ws://127.0.0.1:9001";
+// The broker, unless ?ws= names one. A page served over HTTPS is behind a proxy that also carries
+// the broker's WebSocket at /mqtt on the same host (a browser refuses ws:// from an https page).
+const DEFAULT_BROKER = location.protocol === "https:" ? `wss://${location.host}/mqtt` : "ws://127.0.0.1:9001";
 const BUILD = "../build/";
 const SEPARATORS = /[ \t\r\n]+/;
 
