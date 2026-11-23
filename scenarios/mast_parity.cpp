@@ -96,7 +96,7 @@ PARITY_SCENARIO(T, "an indication the rulebook does not cover shows and reports 
   rig.app().setIndication(SI::Restricting, true);  // not in SP-1990 here
   rig.tick(6 * kMove);
   CHECK(rig.app().state().indication == SI::Stop);
-  CHECK(rec.timeline.empty());
+  CHECK(rec.timeline == "STOP STOP ");  // each command is answered with the state, unchanged or not
 }
 
 PARITY_SCENARIO(T, "two-head diverging aspects; proceed to proceed holds the old indication while head.B turns") {

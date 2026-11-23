@@ -88,6 +88,11 @@ public:
     cycle_.active = false;
     applyLit(lit);
     show(indication);
+    // Every command is answered with a state report once the heads are
+    // proven, also when the state is the one last reported (owner ruling):
+    // the controller takes proof of STOP only from a report that follows its
+    // STOP command, so a mast that ends where it began must still say so.
+    report_due_ = true;
   }
 
   void setLit(bool lit) override {
@@ -114,7 +119,7 @@ private:
   HeadAspect aspect_[kMaxHeads] = {};
   bool lit_half_proven_[kMaxHeads] = {};  // flashing heads: proof from the last lit half
   bool lit_half_failed_[kMaxHeads] = {};  // flashing heads: failure from the last lit half
-  bool report_due_ = false;               // restart: report the Startup State once proven
+  bool report_due_ = false;               // restart or a command: report the state once proven, changed or not
   bool failure_raised_ = false;           // HW_ERROR raised for the current failure episode
   bool flash_on_ = true;
   ElapsedMillis flash_timer_{clock_};  // read only while a lit head flashes

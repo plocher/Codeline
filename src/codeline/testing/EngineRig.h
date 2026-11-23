@@ -72,7 +72,9 @@ struct SpikeRig {
     sig4.setTimeLockingMs(30000);
     t1.setTravelMs(500);
     tick(t);  // power-on: every appliance reports state, the plant asks for health
-    step();   // the attributes arrive: every appliance is admitted
+    step();   // the attributes arrive: every appliance is admitted, each mast is told STOP
+    step();   // each mast answers its STOP after the command latency (150 ms):
+    step();   // proven at STOP
   }
 
   void tick(uint32_t now) {

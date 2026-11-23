@@ -714,3 +714,23 @@ SCENARIO("restart with a train waiting at 830WAB on 832T does not hold the plant
   CHECK(p.cp.findRoute("828E")->state() == Route::State::Idle);
   clear830W(p);
 }
+
+// ---- Proof of STOP is a report after the STOP command (M0-M3 review, owner ruling) ----
+
+SCENARIO("a cancel before the mast confirms proceed holds the route until the mast answers the STOP") {
+  SpikeRig r;
+  r.m2R.setConfirmMs(3000);  // slow heads
+  CHECK(r.code(Word::Normal, Word::Right) == ControlResult::Applied);
+  r.run(400);  // the proceed command is out and the heads are moving; the last report is still STOP
+  CHECK(r.m2R.state().indication == SignalIndication::Stop);
+  CHECK(r.code(kNone, Word::Stop) == ControlResult::Applied);
+  r.run(1000);
+  CHECK(!r.mast2.provenStop());  // the old STOP report proves nothing
+  CHECK(r.cp.findRoute("MAIN")->state() == Route::State::Releasing);
+  CHECK(!r.movable());
+  CHECK(r.code(Word::Reverse, kNone) == ControlResult::VitalIgnored);
+  r.run(4000);  // the heads settle at STOP and the mast says so, though its state never changed
+  CHECK(r.mast2.provenStop());
+  CHECK(r.cp.findRoute("MAIN")->state() == Route::State::Idle);  // approach vacant: no time locking
+  CHECK(r.movable());
+}

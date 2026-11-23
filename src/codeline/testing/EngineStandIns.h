@@ -309,6 +309,8 @@ public:
         target_ = pending_ind_;
         settled_ = false;
         confirm_timer_ = 0;
+      } else {
+        show(target_);  // nothing to move: the command is answered with the state at once
       }
     }
     if (!settled_ && !stuck_ && !failed_ && static_cast<uint32_t>(confirm_timer_) >= confirm_ms_) {
@@ -339,10 +341,9 @@ private:
   void show(SignalIndication i) {
     shown_ = i;
     if (health_ == StandInHealth::Unavailable) return;  // nobody hears it
-    if (state_.indication != i) {
-      state_.indication = i;
-      emitState();
-    }
+    // Every completed command is reported, also when the state is unchanged.
+    state_.indication = i;
+    emitState();
   }
   void emitState() override {
     state_.indication = shown_;

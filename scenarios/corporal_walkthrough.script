@@ -202,6 +202,8 @@ quiet 1000
 send simulation/signalmast/828EA POWER
 extra appliances/signalmast/828EA/state STOP
 extra appliances/signalmast/828EA/cmd STOP
+# The mast answers the STOP it was told again: only this report proves it at STOP.
+extra appliances/signalmast/828EA/state STOP
 quiet 1000
 
 step approach locking, causally: with 832T vacant, a cancel releases at once (no time locking)

@@ -54,7 +54,11 @@ public:
     if (bind) m.setObserver(this);
   }
   ApplianceHealth health;
-  void onStateChanged(MastState) override { health.onState(); }
+  uint32_t reports = 0;  // state reports received (SignalMast: proof of STOP needs one after its command)
+  void onStateChanged(MastState) override {
+    ++reports;
+    health.onState();
+  }
   void onEvent(const ApplianceEvent& ev) override { health.onEvent(ev); }
 };
 

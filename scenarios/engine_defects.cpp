@@ -40,6 +40,8 @@ SCENARIO("defect 1 an opposing mast not proven at STOP blocks the other signal")
   r.run(500);
   CHECK(r.m4L.state().indication == SignalIndication::Stop);
   r.m2R.setHealth(StandInHealth::Ok);
+  r.run(200);
+  CHECK(!r.mast2.provenStop());  // re-admitted and told STOP again, but it has not answered yet
   r.run(300);
   CHECK(r.mast2.provenStop());
   CHECK(r.code(Word::Normal, kNone, Word::Left) == ControlResult::Applied);
@@ -144,12 +146,11 @@ SCENARIO("defect 4 a lever's indication comes from its own route's mast, not the
     ma.tick(now);
     cp.tick(now);
   };
-  tick(1000);
-  tick(1100);
+  for (uint32_t t = 1000; t < 1400; t += 100) tick(t);  // power-on, admission, each mast answers its STOP
   engine::ControlTransaction c = cp.newControls();
   c.assertFunction(FunctionClass::Signal, "B", Word::Left);
   CHECK(cp.apply(c) == ControlResult::Applied);
-  for (uint32_t t = 1200; t < 2000; t += 100) tick(t);
+  for (uint32_t t = 1400; t < 2200; t += 100) tick(t);
   CHECK(mb.state().indication == SignalIndication::Clear);
   CHECK(ma.state().indication == SignalIndication::Stop);
   engine::Indications ind = cp.indications();
