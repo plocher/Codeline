@@ -84,7 +84,7 @@ Three pieces that do not depend on each other.
 - `TickClock` / `ElapsedMillis`, `ITurnout`, `ITurnoutDriver`, `TurnoutCore`, `SimulatedTurnoutDriver`.
 - `MqttTurnoutProxy` → in-memory mock broker → `MqttTurnoutAdapter`.
 - One set of functional scenarios, run twice: direct, and through the MQTT loopback.
-- **Schema seed:** `Cluster:MAINTENANCE` and `Cluster:TURNOUT` plus `Appliance:TURNOUT` written as JSON, with a Python generator that emits the C++ enums, the MQTT codec tables, and the test fixtures for this slice. Extend to the other clusters only after this works.
+- **Schema seed:** `Cluster:MAINTENANCE` and `Cluster:TURNOUT` plus `Appliance:TURNOUT` written as JSON, with a Python generator that emits the C++ enums, appliance tables, and MQTT codec tables for this slice. Extend to the other clusters only after this works.
 
 **Shown by:** the same scenarios passing on both paths, including faults injected from the simulated driver.
 
@@ -126,7 +126,7 @@ Three pieces that do not depend on each other.
 - The rest of the subdivision; APB between control points.
 - Python reference simulators and the MicroPython binding.
 - Direct hardware drivers (`cpNode-IOX`, `PCA9685`) and the physical CTC machine.
-- Proxy drivers (C/MRI, LocoNet, LCC).
+- Proxy drivers (C/MRI, LocoNet, LCC) and shared-socket node-level LWT owner (`{channel}/node/{node-id}/state` + `maintenance.node`, built when the first group-hosted appliance—quad Tortoise or C/MRI proxy—arrives).
 - Studio authoring: editing `given` and `relations`, with `derived` rebuilt live.
 
 ---
@@ -135,7 +135,7 @@ Three pieces that do not depend on each other.
 
 | Donor | Take | Leave |
 | :--- | :--- | :--- |
-| **FieldUnit** `src/` | `InterlockingPlant`, `ControlTable`, appliance logic, `SignalAspectPolicy`, scenario tests; `AarTextCodec` grammar; `ControlTransaction` / `IndicationVector`; `cTcMachine`'s panel-hardware split | Both driver paths; `MqttCodeLine` and its topics; declaration-order wire schemas; fixed `MAX_*` arrays; the `millis()` fallback |
+| **FieldUnit** `src/` | `InterlockingPlant`, `ControlTable`, appliance logic, scenario tests; `AarTextCodec` grammar; `ControlTransaction` / `IndicationVector`; `cTcMachine`'s panel-hardware split *(rulebook-to-head translation from `SignalAspectPolicy` moves below the seam into `MastCore`; the engine emits `SignalIndication` only)* | Both driver paths; `MqttCodeLine` and its topics; declaration-order wire schemas; fixed `MAX_*` arrays; the `millis()` fallback |
 | **FieldUnit** `docs/` | `GLOSSARY.md`, the AAR primer, accepted ADRs | — |
 | **FieldUnit-Subdivision** | Schema v3.4 and reference tables; `spcoast.layout.json` as a fixture; `codeline.py`; the plant host's switch-motor model and self-test pattern | The KiCad importer chain (stays there as a tool); the older per-plant JSON formats; empty `runtime/*` placeholders |
 | **FieldUnit-Studio** | Ideas: route synthesis (conflicts, aspect ceiling), the corridor matrix, console behavior rules, lever and jewel artwork | The code |

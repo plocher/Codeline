@@ -24,7 +24,11 @@ The C++ binding targets constrained microcontrollers (ESP32, RP2040/Pico, Arduin
 
 - **No C++ exceptions, no RTTI, zero heap churn on the hot path**: All operational commands and state reads avoid `std::string`, `std::vector`, and `std::function` heap allocations. String identifiers, paths, and fault details pass as `std::string_view` / `const char*` backed by static or fixed-capacity buffers.
 - **100% Asynchronous Transparency**: Every command method returns **`void`**, matching the one-way pub/sub semantics of both the [**Code Line Interface**](../Codeline.md#3-the-code-line-interface-vs-the-smart-appliance-interface) and the [**MQTT Binding**](MQTT.md). Callers never block for RPC completion and never depend on synchronous return codes that cannot exist over MQTT.
-- **Cached Physical State + Observer Hooks**: Every appliance interface provides a non-blocking O(1) `state()` getter (returning the last confirmed physical state, initialized unproven/restrictive until first confirmation) *plus* lightweight observer registration (`setObserver(...)`) for `onStateChanged` and `onEvent` push notifications.
+- **Cached Physical State + Observer Hooks**: Every appliance interface provides a non-blocking O(1) `state()` getter *plus* single-observer registration (`setObserver(...)`) for `onStateChanged` and `onEvent` push notifications. A supervisory controller registers its observer **before** the appliance boots or replays state, and snapshots all bound appliance states once at the entry of `tick()` so callbacks arriving mid-scan cannot tear an evaluation cycle. Until first confirmation, `state()` returns a restrictive default per appliance while controller health (`ApplianceHealth`) distinguishes unproven startup from live state:
+  - `ITurnout`: `TurnoutState::InTransit`
+  - `ISensor`: `true` (`ACTIVE` / occupied)
+  - `IControl`: zero-count `BitVector{0, 0}`
+  - `IMast`: `{ SignalIndication::Stop, /*lit=*/true }`
 - **Cooperative Timing (`tick(uint32_t now_ms)`)**: All timed behavior (servo motion ramps, `HOLDOFF` make/dropout timers, simulated turnout transit, flasher cadence, `CYCLE` sweeps, and `IDENTIFY` timeouts) advances deterministically from caller-supplied `now_ms`.
 
 ### Type Projection Table

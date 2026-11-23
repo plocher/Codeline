@@ -34,7 +34,7 @@ Every cluster follows the same non-blocking, asynchronous interaction model so l
 | :--- | :--- | :--- |
 | **Primitives** | `bool`, `uint8`, `uint16`, `uint32`, `int32`, `float32` | Fixed-width embedded-safe scalars. |
 | **Domain Scalars** | `percent` (`uint16` `0..10000` hundredths, i.e., `0.00%`–`100.00%`), `duration_ms` (`uint32`), `hz` (`float32`), `string` *(bounded)*, `endpoint_ref` *(opaque handle)* | Exact units and bounded representations for embedded targets; `endpoint_ref` resolves to a direct in-process object reference (e.g., C++ pointer/reference or Python object) or an endpoint address in networked bindings. |
-| **Composites** | `BitVector` *(fixed-width bitmask + channel `count`)*, `ColorValue` *(tagged `ColorName` \| `Rgb16(r,g,b)` \| `Hsb16(h,s,b)`)*, `list<T>`, `map<K, V>` | Bounded value structures designed for zero/low heap churn in embedded runtimes; `BitVector` represents atomic all-or-nothing multi-channel frames (`SW1..N`, `LAMP1..M`). |
+| **Composites** | `BitVector` *(fixed-width bitmask + channel `count`, `0..32` channels)*, `ColorValue` *(tagged `ColorName` \| `Rgb16(r,g,b)` \| `Hsb16(h,s,b)`)*, `list<T>`, `map<K, V>` | Bounded value structures designed for zero/low heap churn in embedded runtimes; `BitVector` represents atomic all-or-nothing multi-channel frames (`SW1..N`, `LAMP1..M`, maximum `32` channels). |
 | **Mutation Ops** | `SetOp`: `ASSIGN` \| `INCREMENT` \| `DECREMENT` | Typed attribute mutation operator (enabling incremental actuator nudging and group membership add/remove without ad-hoc string parsing). |
 | **Domain Enums** | `TurnoutCommand` (`NORMAL`, `REVERSE`, `UNCHANGED`), `TurnoutState` (`NORMAL`, `REVERSE`, `IN_TRANSIT`), `SignalIndication` (`STOP` .. `CLEAR`), `FaultType`, `FeedbackRegime`, `MotionProfile`, `IdlePower`, `InputStyle`, `ButtonMode`, `ApbMode`, `IdentifyMode` (`ON`, `OFF`, `PULSE`) | Closed enumerations preventing invalid operational states by construction. |
 | **Persistence** | `volatile`, `NV config`, `NV state` | `volatile`: runtime state reset to boot default on restart. `NV config`: provisioned configuration exported/imported via `CONFIG`. `NV state`: persisted runtime counter. |
@@ -81,15 +81,15 @@ Every cluster follows the same non-blocking, asynchronous interaction model so l
 | `online()` | Anytime | Triggers an in-place **logical restart** *(see **RESTART BEHAVIOR** below)*. |
 | `setAttribute(path: AttrPath, op: SetOp, value: AttrValue)` | `RW`: Anytime<br>`VITAL`: `OFFLINE` | Assigns (`ASSIGN`) or nudges (`INCREMENT` / `DECREMENT`) any writable attribute across composed clusters (`RO` targets and `VITAL` writes while `ONLINE` are ignored). Emits `AttributesEvent` on volatile changes or `ConfigEvent` on `NV config` changes. |
 | `clearAttribute(path: AttrPath)` | `RW`: Anytime<br>`VITAL`: `OFFLINE` | Resets writable runtime counters/flags (`maintenance.fault_count` → `0`, `apb.stick` → `false`) or empties collection attributes (`groups.members` → `[]`). |
-| `clearFault()` | `OFFLINE` | Re-verifies the physical hardware/contact condition and clears `maintenance.faulted` only if resolved. |
-| `importConfig(config: ConfigMap)` | `OFFLINE` | Bulk `NV config` provisioning via structured cluster-keyed data (equivalent to repeated `NV config` writes); emits updated `ConfigEvent`. |
+| `clearFault()` | `OFFLINE` | Re-verifies the physical hardware/contact condition and clears `maintenance.faulted` only if resolved. Emits no event; controllers learn the cleared fault state via `exportAttributes()` (typically during `online()` re-admission). |
+| `importConfig(config: ConfigMap)` | `OFFLINE` | Bulk `NV config` provisioning via structured cluster-keyed data. Validated **atomically** on every binding (direct and networked): if any entry is unknown, non-`NV config`, or out of range, the entire import is rejected with no partial writes and no `ConfigEvent`. On success, persists all values and emits `ConfigEvent`. |
 | `cycle(count: uint16, dwell_ms: duration_ms)` | `OFFLINE` | Exercises the appliance repeatedly for mechanical break-in or lamp/visual inspection, pausing `dwell_ms` at each step. |
 
 ### EVENTS
 
 | Event | Payload | Behavior |
 | :--- | :--- | :--- |
-| `FaultEvent` | `type: FaultType, detail?: string` | Universal fault notification.<br>On any fault except `NON_VITAL_ERROR`, firmware sets `maintenance.faulted = true`, increments `maintenance.fault_count`, and emits `FaultEvent`.<br>On `NON_VITAL_ERROR`, firmware logs the event and increments `maintenance.fault_count` without setting `maintenance.faulted`.<br>**Declared universal types**: `HW_ERROR`, `CONFIG_ERROR`, `VITAL_ERROR`, `NON_VITAL_ERROR`. |
+| `FaultEvent` | `type: FaultType, detail?: string` | Universal fault notification.<br>On any fault except `NON_VITAL_ERROR`, firmware sets `maintenance.faulted = true`, increments `maintenance.fault_count`, and emits `FaultEvent`.<br>On `NON_VITAL_ERROR`, firmware logs the event and increments `maintenance.fault_count` without setting `maintenance.faulted`.<br>**Non-blocking**: Faults latch `maintenance.faulted = true` so supervisory controllers apply vital fail-safe substitution, but do **not** block operational commands (allowing a maintainer to back points off an obstruction after `STALL` unless a hardware driver inhibits actuation).<br>**Declared universal types**: `HW_ERROR`, `CONFIG_ERROR`, `VITAL_ERROR`, `NON_VITAL_ERROR`. |
 | `OfflineEvent` / `OnlineEvent` | *(none)* | Emitted whenever `maintenance.offline` transitions (`false` → `true` emits `OfflineEvent`; logical restart completion emits `OnlineEvent`). |
 | `UnavailableEvent` | *(none)* | Transport-level loss notification surfaced by networked bindings when a remote endpoint disconnects unexpectedly. |
 | `AttributesEvent` | `data: AttributeMap` | Structured cluster-keyed volatile attributes emitted in response to `exportAttributes()` or after volatile `setAttribute()` changes. |
@@ -104,6 +104,7 @@ Every cluster follows the same non-blocking, asynchronous interaction model so l
 | `maintenance.faulted` | `bool`, volatile, `RO` | `false` | Set immediately on boot or runtime if hardware/contact verification fails. |
 | `maintenance.fault_count` | `uint32`, NV state, `RO` *(clearable)* | `0` | Increments only on transitions from confirmed healthy to faulted. Reset only via `clearAttribute("maintenance.fault_count")`. |
 | `maintenance.post` | `bool`, NV config, `VITAL` | `true` *(non-moving)*<br>`false` *(`TURNOUT`)* | Briefly exercises attached physical hardware on boot. Defaults `false` for moving actuators that may interfere with objects on the layout (`TURNOUT`). |
+| `maintenance.node` | `string`, volatile, `RO` | `""` | Runtime identifier of the hosting microcontroller/gateway node when multiple appliances share one networked transport session (empty `""` for in-process or dedicated per-appliance sessions). Reported in `AttributesEvent` so networked bindings can apply node-level LWT without member lists. |
 
 ### RESTART BEHAVIOR *(Power-On and Exiting `OFFLINE`)*
 Both power-on boot and `online()` execute the same initialization sequence (on `online()`, in-place without tearing down the active transport session):
@@ -112,6 +113,9 @@ Both power-on boot and `online()` execute the same initialization sequence (on `
 3. Reset volatile attributes to their declared boot defaults (`maintenance.offline = false`, `maintenance.id = false`) and re-verify hardware/contacts (`maintenance.faulted`).
 4. Run POST if `maintenance.post == true`.
 5. Enter the appliance's declared **Startup State** and emit initial **STATE**, `ConfigEvent`, and *(when exiting `OFFLINE`)* `OnlineEvent` last.
+
+#### Controller Health Proof & Re-Admission
+Because `FaultEvent`, `OfflineEvent`, and `OnlineEvent` are transient (unretained on networked bindings), `clearFault()` emits no event, and step 3 re-verifies faults *before* `OnlineEvent` in step 5, **STATE** and discrete events alone cannot prove that an appliance is both `ONLINE` and unfaulted. A supervisory controller therefore treats every appliance's health as **unproven** (applying vital fail-safe substitution) at controller startup, after `UnavailableEvent` recovery (including controller transport reconnect or a shared host node going `UNAVAILABLE`), and after `OnlineEvent`, until it calls `exportAttributes()` and receives an `AttributesEvent` confirming `maintenance.offline == false` and `maintenance.faulted == false`. Once proven healthy, live `OfflineEvent`, `FaultEvent` (other than `NON_VITAL_ERROR`), and `UnavailableEvent` drop health immediately; any missed or delayed `AttributesEvent` errs restrictively.
 
 ---
 
@@ -231,7 +235,7 @@ To prevent broadcast/group commands from overwriting per-device calibration (`di
 
 | Command Signature | Gate | Behavior |
 | :--- | :--- | :--- |
-| `setLamps(lamps: BitVector)` | Operational | Atomic all-or-nothing state vector specifying every feedback output `1..lever.outputs`. If `lamps.count != lever.outputs`, the entire command is rejected with no partial output change. |
+| `setLamps(lamps: BitVector)` | Operational | Atomic all-or-nothing state vector specifying every feedback output `1..lever.outputs`. If `lamps.count != lever.outputs`, the entire command is rejected with no partial output change. *(One-way output with no lamp-confirmation channel; electric-lock release withdrawal relies on two-step re-lock-then-clear transactions or an optional controller-side withdrawal dwell.)* |
 
 ### STATE
 
@@ -243,8 +247,8 @@ To prevent broadcast/group commands from overwriting per-device calibration (`di
 
 | Attribute | Type, Persistence & Access | Default | Behavior |
 | :--- | :--- | :--- | :--- |
-| `lever.inputs` | `uint8`, NV config, `VITAL` | `1` | Number of physical switch/lever contact channels (`1..N`). |
-| `lever.outputs` | `uint8`, NV config, `VITAL` | `0` | Number of physical feedback indicator outputs (`1..M`). |
+| `lever.inputs` | `uint8` (`1..32`), NV config, `VITAL` | `1` | Number of physical switch/lever contact channels (`1..32`, bounded by `BitVector` width). |
+| `lever.outputs` | `uint8` (`0..32`), NV config, `VITAL` | `0` | Number of physical feedback indicator outputs (`0..32`, bounded by `BitVector` width). |
 | `lever.input_style` | `InputStyle` (`MAINTAINED` \| `MOMENTARY_2` \| `MOMENTARY_1` \| `ROTARY`), NV config, `VITAL` | `MAINTAINED` | Physical switch/lever mechanism (maintained toggle/quadrant, dual momentary pushbuttons, single toggle pushbutton, or N-position rotary). |
 
 ---
@@ -262,7 +266,7 @@ To prevent broadcast/group commands from overwriting per-device calibration (`di
 
 | Attribute | Type, Persistence & Access | Default | Behavior |
 | :--- | :--- | :--- | :--- |
-| `button.inputs` | `uint8`, NV config, `VITAL` | `1` | Number of momentary pushbutton channels (`1..K`). |
+| `button.inputs` | `uint8` (`0..32`), NV config, `VITAL` | `1` | Number of momentary pushbutton channels (`0..32`, bounded by `BitVector` width; `0` disables buttons when `Cluster:BUTTON` is statically composed on `CONTROL`). |
 | `button.mode` | `ButtonMode` (`ONESHOT_RELEASE` \| `LEVEL`), NV config, `VITAL` | `ONESHOT_RELEASE` | `ONESHOT_RELEASE`: emits once on release. `LEVEL`: emits on both press and release edges. |
 
 ---
@@ -297,6 +301,8 @@ To prevent broadcast/group commands from overwriting per-device calibration (`di
 | `turnout.feedback_regime` | `FeedbackRegime` (`TWO_CONTACT` \| `ONE_CONTACT` \| `SIMULATED`), NV config, `VITAL` | `TWO_CONTACT` | `TWO_CONTACT`: reads physical Normal and Reverse microswitches. `ONE_CONTACT`: reads Normal contact; emulates Reverse after `sim_transit_ms`. `SIMULATED`: emulates both contacts after `sim_transit_ms`. |
 | `turnout.sim_transit_ms` | `duration_ms`, NV config, `VITAL` | `1000` | Simulated transit duration (`ms`) spent in `IN_TRANSIT` before asserting target correspondence under `ONE_CONTACT` or `SIMULATED`. |
 
+*(Note: `Cluster:TURNOUT` does not time physical throws or emit `STALL`—motor drive characteristics such as continuous Tortoise stall holding vs. solenoid pulses belong to the hardware driver or [`Cluster:POSITION`](#clusterposition). Points that fail to arrive remain `IN_TRANSIT`, which vital logic treats as out of correspondence.)*
+
 ---
 
 ## `Cluster:SENSOR`
@@ -324,7 +330,7 @@ To prevent broadcast/group commands from overwriting per-device calibration (`di
 
 | State Field | Type | Behavior |
 | :--- | :--- | :--- |
-| `indication` | `SignalIndication` | Honest physical indication once all heads (lamps or semaphore blades) have assumed the aspect. Moving semaphore blades or imperfectly displayed heads report `STOP`. |
+| `indication` | `SignalIndication` | Honest physical indication once all heads (lamps or semaphore blades) have completed movement to the commanded aspect. While heads are moving, hold the prior confirmed `indication` and do **not** emit a new state until movement completes (so vital logic never observes a premature `STOP` before the heads finish moving to red). An unrecoverable head failure raises a `FaultEvent` rather than emitting `STOP`. *(No controller-loss watchdog is defined on `Cluster:MAST`; if a mast disconnects, vital logic holds locks indefinitely until the mast recovers and confirms `STOP`.)* |
 | `lit` | `bool` | Current approach-lighting illumination state (`true` = illuminated, `false` = dark). |
 
 ### ATTRIBUTES
@@ -334,6 +340,21 @@ To prevent broadcast/group commands from overwriting per-device calibration (`di
 | `mast.rulebook` | `string`, NV config, `VITAL` | `"SP-1990"` | Named rulebook table (e.g., `SPTCO-1960`, `SPTCO-1969`, `SP-1990`, `GCOR-1995`) mapping `(SignalIndication, mast.heads)` → per-head aspects. |
 | `mast.heads` | `uint8` (`1..3`), NV config, `VITAL` | `1` | Number of signal heads (`head.A`, `head.B`, `head.C`). Each head exposes its own composed clusters (`head.A.position.*`, `head.A.color.*`, `head.A.RED.onoff.*`, `head.A.dimming.*`). |
 | `mast.flash_hz` | `hz`, NV config, `RW` | `1.0` | Flash cadence (`Hz`, 60 FPM default) for flashing aspects. Flashing masts within an interlocking should phase-lock to a shared plant flasher reference (e.g., wall-clock/NTP or periodic group sync) so adjacent heads stay in unison. |
+
+### `SignalIndication` Permissiveness Ranking
+The 9 values below form the normative Smart Appliance `SignalIndication` vocabulary (engines with richer internal indications map them to a value **no more permissive**). Vital route evaluation (least-permissive along a route, most-permissive across routes) and `Cluster:APB` `distant` (`APPROACH` or better) use this explicit permissiveness ranking—**never** enum declaration order:
+
+| Rank | `SignalIndication` Value(s) | `DISTANT` (`APPROACH` or better) |
+| :-: | :--- | :-: |
+| `0` | `STOP` | No |
+| `1` | `RESTRICTING`, `DIVERGING_RESTRICTING` | No |
+| `2` | `APPROACH`, `DIVERGING_APPROACH` | Yes |
+| `3` | `APPROACH_MEDIUM` | Yes |
+| `4` | `ADVANCE_APPROACH` | Yes |
+| `5` | `DIVERGING_CLEAR` | Yes |
+| `6` | `CLEAR` | Yes |
+
+*(**`DARK` is not a `SignalIndication`.** When a layout project file lists `DARK` in a head's `presents` array, it denotes approach-lighting capability—represented orthogonally as `lit = false` via `setLit(false)` or `setIndication(indication, false)` so an extinguished mast retains its underlying solved indication and vane/blade position.)*
 
 ---
 
@@ -350,7 +371,7 @@ To prevent broadcast/group commands from overwriting per-device calibration (`di
 
 | State Field | Type | Behavior |
 | :--- | :--- | :--- |
-| `line` | `ApbLineState` (`{ home: bool, distant: bool }`) | Outbound line state emitted to the signal in rear. `(home = false, distant = false)` is the **vital fail-safe line state**.<br><br>`home` asserts when `apb.approach_tc` is clear (`active == false`) and (`next_signal.home` is asserted or directional stick `apb.stick` is active).<br>`distant` asserts when governed mast `state().indication` is `APPROACH` or better.<br><br>**Standalone `OFFLINE` / fault behavior**: Because standalone APB runs without a central controller, while `maintenance.offline == true` or `maintenance.faulted == true`, `Cluster:APB` pauses its autonomous solver and holds outbound `line` at `(home = false, distant = false)`, tumbling upstream APB signals in rear to `STOP`. On `online()` logical restart, `apb.*` config reloads, `apb.stick` resets to `false`, and autonomous evaluation resumes from `STOP` and `(home = false, distant = false)`. |
+| `line` | `ApbLineState` (`{ home: bool, distant: bool }`) | Outbound line state emitted to the signal in rear. `(home = false, distant = false)` is the **vital fail-safe line state**.<br><br>`home` asserts when `apb.approach_tc` is clear (`active == false`) and (`next_signal.home` is asserted or directional stick `apb.stick` is active).<br>`distant` asserts when governed mast `state().indication` is `APPROACH` or better (rank `≥ 2` in the [`SignalIndication` Permissiveness Ranking](#signalindication-permissiveness-ranking)).<br><br>**Standalone `OFFLINE` / fault behavior**: Because standalone APB runs without a central controller, while `maintenance.offline == true` or `maintenance.faulted == true`, `Cluster:APB` pauses its autonomous solver and holds outbound `line` at `(home = false, distant = false)`, tumbling upstream APB signals in rear to `STOP`. On `online()` logical restart, `apb.*` config reloads, `apb.stick` resets to `false`, and autonomous evaluation resumes from `STOP` and `(home = false, distant = false)`. |
 
 ### EVENTS
 

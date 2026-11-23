@@ -27,7 +27,7 @@ Every appliance exposes typed one-way asynchronous **COMMANDS**, observable phys
 - [`Cluster:GROUPS`](../clusters/README.Clusters.md#clustergroups) *(optional)*
 
 ### BEHAVIOR & INVARIANTS
-1. **Startup State**: Reads physical point contacts without energizing the motor (`maintenance.post` defaults to `false`) and emits `state().alignment` (`NORMAL`, `REVERSE`, or `IN_TRANSIT`).
+1. **Startup State**: Reads physical point contacts without energizing the motor (`maintenance.post` defaults to `false`; even if enabled, `POST` on `TURNOUT` is strictly a non-moving hardware/contact check and never moves points at boot) and emits `state().alignment` (`NORMAL`, `REVERSE`, or `IN_TRANSIT`).
 2. **Closed-Loop Transit Sequence**:
    ```text
    Command                        Observed State     Physical Meaning
@@ -37,7 +37,7 @@ Every appliance exposes typed one-way asynchronous **COMMANDS**, observable phys
    —                              IN_TRANSIT         Normal contact opens; points in transit
    —                              REVERSE            Reverse contact closes; points locked Reverse
    ```
-3. **Manual Movement & Out-of-Correspondence State**: While points are moving, obstructed, or positioned manually (hand-throw or dual-control in `HAND`), `state().alignment` tracks physical point contacts—reporting `IN_TRANSIT` whenever neither end-of-travel contact is closed. Contradictory contacts emit `FaultEvent(SHORTED_CONTACTS)` while holding `IN_TRANSIT`; actuator faults emit `FaultEvent(STALL)` or `FaultEvent(OVERCURRENT)` via [`Cluster:POSITION`](../clusters/README.Clusters.md#clusterposition).
+3. **Manual Movement, Faults & Out-of-Correspondence State**: While points are moving, obstructed, or positioned manually (hand-throw or dual-control in `HAND`), `state().alignment` tracks physical point contacts—reporting `IN_TRANSIT` whenever neither end-of-travel contact is closed. Contradictory contacts emit `FaultEvent(SHORTED_CONTACTS)` while holding `IN_TRANSIT`; actuator faults (`STALL`, `OVERCURRENT`) are emitted when [`Cluster:POSITION`](../clusters/README.Clusters.md#clusterposition) is composed. Operational `setAlignment` remains accepted while `faulted` or `OFFLINE` so points can be backed off an obstruction during troubleshooting.
 4. **Crossovers & Dependent Derails**: Each switch machine or derail in a crossover (`815`, `815A`) or switch-and-derail pair (`827`, `827D`) is an independent `Appliance:TURNOUT` endpoint. For a derail, `NORMAL` is derailing and `REVERSE` is non-derailing.
 
 ### MAINTENANCE MODE (`OFFLINE`)
