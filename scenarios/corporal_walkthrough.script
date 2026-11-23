@@ -1,0 +1,220 @@
+# CP Corporal: docs/Walkthrough.md section 1 on the wire, replayed by
+#   scenarios/corporal_walkthrough.cpp   in process (InMemoryMockBroker, injected time)
+#   scenarios/corporal_broker.py         over a real mosquitto (tools/codeline_office.py)
+# Grammar: src/codeline/testing/WireScript.h. A topic is <channel>/<rest>: appliances, codeline
+# or simulation, each read from the station file's `channel` records.
+#
+#   expect    a message the Walkthrough shows, with the Walkthrough's own string
+#             (or, for the lock, MQTT.md section 5a's, which the Walkthrough points to)
+#   extra     a message observed that the Walkthrough does not show
+#   differs   a message observed where the Walkthrough shows something else: both strings
+#
+# The Walkthrough writes appliance topics without {channel} (/turnout/829/cmd); here they
+# carry it (appliances/turnout/829/cmd = {appliances channel}/turnout/829/cmd).
+#
+# Every appliance command and every indication frame is checked after `begin`, named here or not:
+# an unscripted one fails the run.
+
+# Switch 829 is found reversed at power-on, so the move has to throw it (Walkthrough step 3).
+initial turnout/829 REVERSE
+
+step boot: every appliance reports; the startup time locking of the routes whose approach is outside Corporal expires
+await codeline/Corporal/indications CHART 85973c19 (829NWK) 829RWK (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+begin
+
+step 2. checks OS occupancy, locks and opposing signals
+retained appliances/sensor/829T1/state (ACTIVE)
+retained appliances/sensor/827T1/state (ACTIVE)
+retained appliances/control/lock:827/state (SW1)
+retained appliances/turnout/827D/state NORMAL (REVERSE)
+retained appliances/signalmast/830EAB/state STOP
+retained appliances/signalmast/828EA/state STOP
+
+step 1. press CODE
+send codeline/Corporal/controls CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) 830WGS (830EGS) (830HS) (1MCS)
+expect codeline/Corporal/indications CHART 85973c19 (829NWK) (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+step 3. commands power switch 829
+expect appliances/turnout/829/cmd NORMAL (REVERSE)
+step 4. points unlock and begin moving
+expect appliances/turnout/829/state (NORMAL) (REVERSE)
+step 5. points lock in correspondence
+expect appliances/turnout/829/state NORMAL (REVERSE)
+step 6. route solves to APPROACH (next signal at Christopher is STOP)
+expect appliances/signalmast/830WAB/cmd APPROACH
+expect codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+step 7. mast confirms APPROACH
+expect appliances/signalmast/830WAB/state APPROACH
+expect codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) 828WGK (828EGK) (828TEK) 830WGK (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+
+step train approaching: the freight occupies 832T, in rear of 830WAB
+send simulation/sensor/832T SHUNT
+expect appliances/sensor/832T/state ACTIVE
+
+step cancel: the dispatcher centers lever 830 (830HS) and presses CODE
+send codeline/Corporal/controls CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) (830WGS) (830EGS) 830HS (1MCS)
+# The Walkthrough describes this republish ("still showing 828WGK / 830WGK until the mast
+# leaves proceed") without spelling the frame; this is that frame.
+expect codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) 828WGK (828EGK) (828TEK) 830WGK (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+expect appliances/signalmast/830WAB/cmd STOP
+expect appliances/signalmast/830WAB/state STOP
+expect codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) 830TEK (1MCK) (827T1K) (829T1K)
+mark TER
+
+step time locking keeps 829WLR down: a reverse demand for 829 is ignored
+send codeline/Corporal/controls CHART 85973c19 (829NWS) 829RWS (827WLS) (828WGS) (828EGS) (828HS) (830WGS) (830EGS) 830HS (1MCS)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) 830TEK (1MCK) (827T1K) (829T1K)
+quiet 1000
+
+step the timer expires
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+elapsed TER
+
+step train passing: the dispatcher clears 830WAB again for the waiting freight
+send codeline/Corporal/controls CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) 830WGS (830EGS) (830HS) (1MCS)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+expect appliances/signalmast/830WAB/cmd APPROACH
+expect appliances/signalmast/830WAB/state APPROACH
+expect codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) 828WGK (828EGK) (828TEK) 830WGK (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+
+step train passing: the freight accepts 830WAB and enters the OS 829T1
+send simulation/sensor/829T1 SHUNT
+extra appliances/sensor/829T1/state ACTIVE
+extra appliances/signalmast/830WAB/cmd STOP
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) 828WGK (828EGK) (828TEK) 830WGK (830EGK) (830TEK) (1MCK) (827T1K) 829T1K
+extra appliances/signalmast/830WAB/state STOP
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) 829T1K
+
+step train passing: the head end enters 827T1, the rear clears 832T
+send simulation/sensor/827T1 SHUNT
+extra appliances/sensor/827T1/state ACTIVE
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) 827T1K 829T1K
+send simulation/sensor/832T (SHUNT)
+extra appliances/sensor/832T/state (ACTIVE)
+
+step train passing: the rear clears 829T1, then 827T1
+send simulation/sensor/829T1 (SHUNT)
+extra appliances/sensor/829T1/state (ACTIVE)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) 827T1K (829T1K)
+send simulation/sensor/827T1 (SHUNT)
+extra appliances/sensor/827T1/state (ACTIVE)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+
+step lock 827: the crew at the Beet Loader presses and holds the release request
+send simulation/control/lock:827 BTN1
+expect appliances/control/lock:827/event BTN1
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) 827WLQK (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+
+step lock 827: the dispatcher sees 827WLQK and sends 827WLS
+send codeline/Corporal/controls CHART 85973c19 (829NWS) (829RWS) 827WLS (828WGS) (828EGS) (828HS) (830WGS) (830EGS) (830HS) (1MCS)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) 827WLK 827WLQK (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+expect appliances/control/lock:827/cmd LAMP1
+
+step lock 827: the crew lets go of the button and opens the lock
+send simulation/control/lock:827 (BTN1)
+expect appliances/control/lock:827/event (BTN1)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) 827WLK (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+send simulation/control/lock:827 SW1
+expect appliances/control/lock:827/state SW1
+
+step lock 827: the crew lines the siding by hand and pulls out westward over 827D and 827
+send simulation/turnout/827D REVERSE
+extra appliances/turnout/827D/state (NORMAL) REVERSE
+send simulation/turnout/827 REVERSE
+extra appliances/turnout/827/state (NORMAL) REVERSE
+send simulation/sensor/827T1 SHUNT
+extra appliances/sensor/827T1/state ACTIVE
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) 827WLK (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) 827T1K (829T1K)
+send simulation/sensor/827T1 (SHUNT)
+extra appliances/sensor/827T1/state (ACTIVE)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) 827WLK (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+
+step lock 827: the crew restores 827 and 827D and closes the lock
+send simulation/turnout/827 NORMAL
+extra appliances/turnout/827/state NORMAL (REVERSE)
+send simulation/turnout/827D NORMAL
+extra appliances/turnout/827D/state NORMAL (REVERSE)
+send simulation/control/lock:827 (SW1)
+expect appliances/control/lock:827/state (SW1)
+
+step lock 827: the dispatcher locks 827 again (827WLS dropped)
+send codeline/Corporal/controls CHART 85973c19 (829NWS) (829RWS) (827WLS) (828WGS) (828EGS) (828HS) (830WGS) (830EGS) (830HS) (1MCS)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) 827WLK (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+extra appliances/control/lock:827/cmd (LAMP1)
+step lock 827: proven locked once the lamp has been out for the engine's withdrawal time
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+quiet 1000
+
+# Walkthrough step 2, causally: each check, failed on its own, refuses the same CODE (830WAB
+# westward, as at step 1, 829 already normal), and nothing is commanded, then or once the
+# cause is gone. Every appliance command is watched, so any command here fails the run.
+step 2, refused: 827D found reversed (830WAB needs it normal, derailing)
+send simulation/turnout/827D REVERSE
+extra appliances/turnout/827D/state (NORMAL) REVERSE
+send codeline/Corporal/controls CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) 830WGS (830EGS) (830HS) (1MCS)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+quiet 1000
+send simulation/turnout/827D NORMAL
+extra appliances/turnout/827D/state NORMAL (REVERSE)
+quiet 1000
+
+step 2, refused: 827T1 occupied (830WAB clears it)
+send simulation/sensor/827T1 SHUNT
+extra appliances/sensor/827T1/state ACTIVE
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) 827T1K (829T1K)
+send codeline/Corporal/controls CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) 830WGS (830EGS) (830HS) (1MCS)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) 827T1K (829T1K)
+quiet 1000
+send simulation/sensor/827T1 (SHUNT)
+extra appliances/sensor/827T1/state (ACTIVE)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+quiet 1000
+
+step 2, refused: 829T1 occupied (the OS of 829, which 830WAB clears)
+send simulation/sensor/829T1 SHUNT
+extra appliances/sensor/829T1/state ACTIVE
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) 829T1K
+send codeline/Corporal/controls CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) 830WGS (830EGS) (830HS) (1MCS)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) 829T1K
+quiet 1000
+send simulation/sensor/829T1 (SHUNT)
+extra appliances/sensor/829T1/state (ACTIVE)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+quiet 1000
+
+step 2, refused: lock 827 open (the crew has the switch)
+send simulation/control/lock:827 SW1
+extra appliances/control/lock:827/state SW1
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) 827WLK (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+send codeline/Corporal/controls CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) 830WGS (830EGS) (830HS) (1MCS)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) 827WLK (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+quiet 1000
+send simulation/control/lock:827 (SW1)
+extra appliances/control/lock:827/state (SW1)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+quiet 1000
+
+step 2, refused: opposing mast 828EA not proven at STOP (it has lost power: its /state reads UNAVAILABLE)
+send simulation/signalmast/828EA (POWER)
+extra appliances/signalmast/828EA/state UNAVAILABLE
+send codeline/Corporal/controls CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) 830WGS (830EGS) (830HS) (1MCS)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+quiet 1000
+send simulation/signalmast/828EA POWER
+extra appliances/signalmast/828EA/state STOP
+extra appliances/signalmast/828EA/cmd STOP
+quiet 1000
+
+step approach locking, causally: with 832T vacant, a cancel releases at once (no time locking)
+send codeline/Corporal/controls CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) 830WGS (830EGS) (830HS) (1MCS)
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+expect appliances/signalmast/830WAB/cmd APPROACH
+expect appliances/signalmast/830WAB/state APPROACH
+expect codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) 828WGK (828EGK) (828TEK) 830WGK (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+send codeline/Corporal/controls CHART 85973c19 829NWS (829RWS) (827WLS) (828WGS) (828EGS) 828HS (830WGS) (830EGS) 830HS (1MCS)
+# The Walkthrough describes this republish ("still showing 828WGK / 830WGK until the mast
+# leaves proceed") without spelling the frame; this is that frame.
+expect codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) 828WGK (828EGK) (828TEK) 830WGK (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+expect appliances/signalmast/830WAB/cmd STOP
+expect appliances/signalmast/830WAB/state STOP
+extra codeline/Corporal/indications CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) (828WGK) (828EGK) (828TEK) (830WGK) (830EGK) (830TEK) (1MCK) (827T1K) (829T1K)
+quiet 1000
