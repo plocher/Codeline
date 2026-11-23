@@ -734,3 +734,19 @@ SCENARIO("a cancel before the mast confirms proceed holds the route until the ma
   CHECK(r.cp.findRoute("MAIN")->state() == Route::State::Idle);  // approach vacant: no time locking
   CHECK(r.movable());
 }
+
+// ---- A lock release taken back before the next scan (M0-M3 review) ---------------
+
+SCENARIO("a lock release granted and withdrawn between two scans is proven withdrawn again, and the plant is not stuck") {
+  CorporalPlant p;
+  settle(p);
+  CHECK(p.el827.provenLocked());
+  CHECK(frame(p.cp, {k829R, k827Release}) == ControlResult::Applied);
+  CHECK(frame(p.cp, {k829R}) == ControlResult::Applied);  // no scan between the two frames
+  p.run(500);
+  CHECK(!p.lock827.releaseLit());
+  CHECK(!p.el827.provenLocked());  // the withdrawal is timed afresh
+  p.run(1500);
+  CHECK(p.el827.provenLocked());
+  clear830W(p);  // routes over 827 clear again
+}

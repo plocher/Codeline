@@ -98,7 +98,11 @@ public:
 
   void drive() {
     if (!healthy_) return;
-    if (!resend_ && granted_ == last_sent_) return;
+    // Nothing to say again, unless the lock stands not granted with no
+    // withdrawal on record: a release granted and taken back between two
+    // scans never lit the lamp, but grant() forgot the withdrawal, so the
+    // lamp is put out once more and the withdrawal is timed afresh.
+    if (!resend_ && granted_ == last_sent_ && (granted_ || withdrawal_sent_)) return;
     BitVector lamps;
     lamps.count = 1;
     lamps.set(1, granted_);
