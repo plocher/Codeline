@@ -187,8 +187,11 @@ private:
   bool refused_ = false;           // a setter was called while frozen
 
   // Restart (README.CodeLine 5.1 rule 3): every route starts as if its signal
-  // had just dropped, so time locking runs where a train approaches.
+  // had just dropped, so time locking runs where a train approaches. A route
+  // that is lined with a train over its switches goes on to Traversing
+  // (Plant::trainInside) and holds its locks until its circuits are clear.
   State state_ = State::Releasing;
+  bool restart_ = true;        // still in the Releasing it started in
   bool timed_ = false;         // a train approached when the signal dropped
   bool next_proceed_ = false;  // DR snapshot for this scan
   std::vector<uint8_t> released_;   // per switch: section released while traversing

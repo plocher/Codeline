@@ -658,3 +658,59 @@ SCENARIO("gap M05 a STOP lost in flight is sent again when the mast is re-admitt
 }
 
 int main() { return codeline::scenario::run(); }
+
+// ---- Restart with a train inside the plant (M0-M3 review, owner ruling) ---------
+// Nothing remembers that the train accepted a signal, so a lined route with a
+// train over its switches takes up its route locking again and holds it until
+// its circuits are clear.
+
+namespace {
+
+// Power-on with 829 as the stand-in starts (normal), unlike boot().
+void restart(CorporalPlant& p) {
+  p.tick(p.t);
+  p.step();
+  p.run(31000);  // any restart time locking runs out
+}
+
+}  // namespace
+
+SCENARIO("restart with a train on 829T1 and the route lined holds lock 827 until the train is clear of the plant") {
+  CorporalPlant p;
+  p.s829T1.shunt(true);  // a westward train past 830WAB, 827 still ahead of it
+  restart(p);
+  CHECK(p.sw829.provenAt(Position::Normal));
+  CHECK(p.cp.findRoute("830W")->state() == Route::State::Traversing);
+  CHECK(!p.sw827.WLR());
+  CHECK(frame(p.cp, {k829N, k827Release}) == ControlResult::VitalIgnored);
+  p.s827T1.shunt(true);  // the train moves on to 827T1
+  p.run(500);
+  p.s829T1.shunt(false);
+  p.run(500);
+  CHECK(frame(p.cp, {k829N, k827Release}) == ControlResult::VitalIgnored);
+  p.s827T1.shunt(false);  // and leaves the plant
+  p.run(500);
+  CHECK(p.cp.findRoute("830W")->state() == Route::State::Idle);
+  CHECK(p.cp.findRoute("828E")->state() == Route::State::Idle);
+  CHECK(frame(p.cp, {k829N, k827Release}) == ControlResult::Applied);
+  p.run(500);
+  CHECK(p.lock827.releaseLit());
+}
+
+SCENARIO("restart with a train on 829T1 and 829 reversed leaves lock 827 free: no route over 827 is lined") {
+  CorporalPlant p;
+  p.s829T1.shunt(true);
+  settle(p);  // boot() finds 829 reversed
+  CHECK(p.cp.findRoute("830E")->state() == Route::State::Traversing);
+  CHECK(p.cp.findRoute("830W")->state() == Route::State::Idle);
+  CHECK(frame(p.cp, {k829R, k827Release}) == ControlResult::Applied);
+}
+
+SCENARIO("restart with a train waiting at 830WAB on 832T does not hold the plant: the signal clears after time locking") {
+  CorporalPlant p;
+  p.s832T.shunt(true);
+  restart(p);
+  CHECK(p.cp.findRoute("830W")->state() == Route::State::Idle);
+  CHECK(p.cp.findRoute("828E")->state() == Route::State::Idle);
+  clear830W(p);
+}

@@ -359,6 +359,17 @@ private:
   // ---- evaluate ----------------------------------------------------------------
 
   // A route without a mast (a configuration error) is never proven at STOP.
+  // After a restart: the route is lined (no switch of it is proven at the
+  // other end; a switch whose position is not known counts as lined) and a
+  // circuit over one of its switches is not proven clear.
+  static bool trainInside(const Route& r) {
+    for (const Route::SwitchReq& s : r.switches_)
+      if (s.sw->healthy() && s.sw->inCorrespondence() && s.sw->reported() != s.pos) return false;
+    for (const Route::SwitchReq& s : r.switches_)
+      if (s.releasing != nullptr && !s.releasing->clear()) return true;
+    return false;
+  }
+
   static bool provenStop(const Route& r) { return r.mast_ != nullptr && r.mast_->provenStop(); }
 
   // A route over a hand switch needs its electric lock proven locked.
@@ -477,7 +488,15 @@ private:
           // Approach locking: wait for proof of STOP, then time it if a train
           // approaches (now, or when the signal dropped).
           if (provenStop(r)) {
-            if (r.timed_ || r.approachOccupied()) {
+            const bool restart = r.restart_;
+            r.restart_ = false;
+            if (restart && trainInside(r)) {
+              // Restart with a train already inside the route: nothing
+              // remembers that it accepted the signal, so the route locking
+              // it would have is taken up again and held until the route's
+              // circuits are clear (owner ruling; README.CodeLine 5.1 rule 3).
+              enterTraversing(r);
+            } else if (r.timed_ || r.approachOccupied()) {
               r.state_ = Route::State::Timing;
               r.ter_ = 0;
             } else {
