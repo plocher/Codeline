@@ -1,6 +1,6 @@
 [![Codeline](images/codeline-logo.svg)](../README.md)
 [Studio](Studio.md) · [Codeline](Codeline.md) · **▸ Smart Appliances**  
-↳ [Appliances](appliances/README.Appliances.md) · [Clusters](clusters/README.Clusters.md) · [C++ Binding](bindings/Cpp.md) · [MQTT Binding](bindings/MQTT.md) · *uPython Binding*
+↳ [Appliances](appliances/README.Appliances.md) · [Clusters](clusters/README.Clusters.md) · [C++ Binding](bindings/Cpp.md) · [MQTT Binding](bindings/MQTT.md) · [Building](BuildingAppliances.md) · *uPython Binding*
 ---
 ---
 # Smart Appliances: An Open Specification for Model Railroad Hardware
@@ -13,6 +13,7 @@ Most model railroad control systems treat layout hardware as loose collections o
 - [**Smart Appliance Catalog**](appliances/README.Appliances.md) — logical recipes for all 7 Smart Appliances (`Startup State`, command → state timelines, sub-components, and `OFFLINE` maintenance mode).
 - [**C++ In-Process Binding, Reference Core & Test Harness**](bindings/Cpp.md) — zero-heap-churn embedded C++ interfaces, shared Reference Appliance Core + pluggable `HW I/O` Driver Port, optional MQTT Mirror glue, and deterministic functional testing.
 - [**MQTT Transport & Text Wire Encoding Binding**](bindings/MQTT.md) — mechanical two-plane/four-topic projection, `TOKEN`/`(TOKEN)` positive-control wire encoding, sole retained `/state`, dynamic broadcast discovery, and broker LWT mapping.
+- [**Building & Wiring Smart Appliances**](BuildingAppliances.md) — Simulated, Direct MCU (`cpNode-IOX`, `PCA9685`, `3MUX2A`), and Proxy (`C/MRI`, `LocoNet`, `LCC`, JMRI) realizations, pin bundles, Active-Low wiring conventions, and under-benchwork shop documentation.
 
 ---
 
@@ -56,7 +57,7 @@ Core architectural rules:
 | :--- | :--- | :--- | :--- |
 | **Wayside Plant** | **[`TURNOUT`](appliances/README.Appliances.md#applianceturnout)** — `turnout` | `MAINTENANCE` (`post=false`), `TURNOUT`, opt. `POSITION`, `GROUPS` | `NORMAL` / `REVERSE` commands; `IN_TRANSIT` while moving |
 | **Wayside Plant** | **[`SENSOR`](appliances/README.Appliances.md#appliancesensor)** — `sensor` | `MAINTENANCE`, `SENSOR`, `HOLDOFF` *(optical/IR)*, opt. `GROUPS` | Read-only track/contact detector: `active: bool` |
-| **Wayside Plant** | **[`SIGNALMAST`](appliances/README.Appliances.md#appliancesignalmast)** — `signalmast` | `MAINTENANCE`, `MAST`, per-head clusters, opt. `APB`, `GROUPS` | `(SignalIndication, lit)` under `rulebook`; `STOP` while moving/faulted |
+| **Wayside Plant** | **[`SIGNALMAST`](appliances/README.Appliances.md#appliancesignalmast)** — `signalmast` | `MAINTENANCE`, `MAST`, per-head clusters, opt. `APB`, `GROUPS` | `(SignalIndication, lit)` under `rulebook`; holds prior state while moving and reports after every completed command |
 | **Wayside Plant** | **[`TRAINORDER`](appliances/README.Appliances.md#appliancetrainorder)** — `trainorder` | `MAINTENANCE`, 1-head `MAST`, `head.A`, opt. `GROUPS` | One directional face (`STOP`/`APPROACH`/`CLEAR`); dual board = 2 appliances |
 | **Wayside Plant** | **[`CROSSING`](appliances/README.Appliances.md#appliancecrossing)** — `crossing` | `MAINTENANCE`, `CROSSING`, `flasher`, opt. `bell`, `gate.W`/`E`, `GROUPS` | `setActive(bool)` → `{ flashing, gates_down }` |
 | **Operator Surface** | **[`CONTROL`](appliances/README.Appliances.md#appliancecontrol)** — `control` | `MAINTENANCE`, `LEVER`, opt. `BUTTON`, `lamp.*`, `GROUPS` | Atomic `BitVector` lamp/switch frames + `ButtonEvent` for fascia plates, locks, yard selectors, and CTC columns |
@@ -90,27 +91,12 @@ See [**Walkthrough**](Walkthrough.md) for concrete MQTT wire traces of routing, 
 
 ---
 
-## 4. Reference Appliance Core & Three Pluggable Drivers
+## 4. Realizing & Wiring Smart Appliances
 
-![Smart Appliances Layer — Below the Smart Appliance Interface](images/02b-smart-appliances-layer.svg)
+Above the Smart Appliance Interface, every endpoint speaks the same Typed Async Logical API. Below it, a shared **Reference Appliance Core** pairs with one of three interchangeable drivers so the exact same state machines run everywhere:
 
-Above the Smart Appliance Interface, every appliance speaks the exact same Typed Async Logical API. Below it, a shared **Reference Appliance Core** pattern (`TurnoutCore`, `SensorCore`, `MastCore`, ...—specified in [**`bindings/Cpp.md`**](bindings/Cpp.md) and repeatable in other target runtimes such as MicroPython) implements all cluster state machines, `MAINTENANCE` gating, `HOLDOFF` timers, `POSITION` ramps, and `MAST` rulebooks once per runtime—delegating only minimal physical hooks across a narrow **Driver Port** (`ITurnoutDriver`, `ISensorDriver`, `IMastDriver`, ...) to **three interchangeable backends**:
+- **Simulated** (`SimulatedDriver`): in-memory virtual railroad and deterministic test fixture.
+- **Direct Hardware** (`DirectHardwareDriver`): embedded microcontrollers (`ESP32`, `RP2040`, `cpNode-IOX`, `PCA9685`, `3MUX2A`, Tortoise motors, microswitches).
+- **Legacy Bus Proxy** (`ProxyBusDriver`): bridges existing `C/MRI`, `LocoNet`, `LCC`, or JMRI hardware onto the Smart Appliance API.
 
-![Implementing Smart Appliances](images/04-smart-vs-wired-realization.svg)
-
-### 1. Simulated Appliances (`SimulatedDriver` — Virtual Railroad & Functional Test Fixture)
-Plugging an in-memory **`SimulatedDriver`** into the Reference Appliance Core yields the built-in virtual railroad—stepping turnouts through `IN_TRANSIT` timers, rendering signal aspects on screen, and injecting virtual train shunts before any hardware is wired. The same `SimulatedDriver` doubles as the **reference boilerplate stub** for new hardware drivers and as a **deterministic fault-injection test harness** (running the entire functional test suite in microseconds via `tick(now_ms)` over both direct C++ and MQTT loopback; see [**C++ Binding: Functional Test Framework**](bindings/Cpp.md#5-deterministic-functional-test-framework--transport-parity)).
-
-### 2. Direct Smart Appliances (`DirectHardwareDriver` — Embedded MCU + Pin Binding)
-An ESP32, Raspberry Pi Pico W, or bungalow controller driving local `cpNode-IOX` (`MCP23017`), `PCA9685` servo/PWM boards, NeoPixels, Tortoise motors, and microswitches binds the Reference Core directly to local I/O:
-
-- **Signal Masts across Hardware Types**: Provision one `mast.rulebook` (`SP-1990`, `SPTCO-1960`, `GCOR-1995`) and bind heads to RGB H-2 searchlights (`Cluster:COLOR`), 3- or 4-lamp discrete heads (`Cluster:ON/OFF`), 2-wire `3MUX2A` multiplexed decoders, NeoPixel chains, or servo semaphores (`Cluster:POSITION`). The operational API remains identical across all of them.
-- **Flexible Switch Feedback Regimes**: Under [`Cluster:TURNOUT`](clusters/README.Clusters.md#clusterturnout), `turnout.feedback_regime` supports `TWO_CONTACT` (Normal + Reverse microswitches), `ONE_CONTACT` (Normal switch + emulated Reverse), or `SIMULATED` (timed transit emulation when no point contacts are installed).
-
-See [**Studio: Hardware Bindings and Benchwork Wiring Documentation**](Studio.md#4-hardware-bindings-and-legacy-layout-import) for pin bundles, active-low defaults, cardstock board templates, and cable loom drawings.
-
-### 3. Proxy Appliances (Wrapping External `C/MRI`, `LocoNet`, `LCC`, and JMRI Buses)
-Binding the Reference Core to a **`ProxyBusDriver`** presents the standard Smart Appliance API upward while bridging low-level bits, packets, or events across existing `C/MRI`, `LocoNet`, `LCC`, or legacy MQTT buses downward:
-
-- **Upgrading 1-Bit Turnouts**: Wrapping a 1-bit C/MRI or MQTT turnout output with `turnout.feedback_regime = SIMULATED` gives it realistic `IN_TRANSIT` correspondence and full `OFFLINE` maintenance behavior.
-- **Bit-Mapped vs. Smart Bus Nodes**: Against a classic C/MRI SMINI, the Proxy Appliance runs hardware binding and 1 Hz flashing in `OB[]` on the host; against smart Wi-Fi C/MRI nodes (such as Andrew Deak's nodes), the Proxy flips target bits in `OB[]` while the remote node executes incandescent fade ramps and servo profiles locally.
+See [**Building & Wiring Smart Appliances**](BuildingAppliances.md) for the Reference Core + Driver Port diagrams, hardware/proxy details, pin-bundle and Active-Low conventions, and under-benchwork wiring documentation.

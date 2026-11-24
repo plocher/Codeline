@@ -1,6 +1,6 @@
 [![Codeline](../images/codeline-logo.svg)](../../README.md)
 [Studio](../Studio.md) · [Codeline](../Codeline.md) · **[Smart Appliances](../SmartAppliances.md)**  
-↳ **▸ Appliances** · [Clusters](../clusters/README.Clusters.md) · [C++ Binding](../bindings/Cpp.md) · [MQTT Binding](../bindings/MQTT.md) · *uPython Binding*
+↳ **▸ Appliances** · [Clusters](../clusters/README.Clusters.md) · [C++ Binding](../bindings/Cpp.md) · [MQTT Binding](../bindings/MQTT.md) · [Building](../BuildingAppliances.md) · *uPython Binding*
 ---
 ---
 

@@ -31,9 +31,10 @@ Codeline splits layout design, vital railroad logic, and physical hardware into 
 
 | Document | Focus |
 | :--- | :--- |
-| **[Studio](docs/Studio.md)** | Trackplan authoring, live simulation, dynamic hardware discovery, pin bindings, legacy bus import, and benchwork wiring documentation |
+| **[Studio](docs/Studio.md)** | Trackplan authoring, live simulation, dynamic hardware discovery, and code/documentation generation workflow |
 | **[Codeline](docs/Codeline.md)** | Operating regimes, positive control & fail-safe design, Code Line Interface, declarative signal solver, deployment topologies, and standalone fallback |
-| **[Smart Appliances](docs/SmartAppliances.md)** | Typed async hardware model, C++/MQTT bindings and optional mirroring, shared Reference Appliance Core, and Simulated / Direct / Proxy drivers |
+| **[Smart Appliances](docs/SmartAppliances.md)** | Typed async logical hardware model, cluster & catalog overview, and mechanical C++ / MQTT bindings |
+| **[Building Smart Appliances](docs/BuildingAppliances.md)** | Physical and driver layer: shared Reference Appliance Core, Simulated / Direct MCU / Proxy drivers, pin bundles, Active-Low wiring conventions, and benchwork shop documentation |
 | **[Walkthrough](docs/Walkthrough.md)** | End-to-end CP Corporal westbound move (dispatcher levers → vital logic → MQTT wire trace → APB tumble-down), offline servo calibration, and dynamic discovery |
 | **[SPCoast Example](docs/Background.md)** | Reference 1992–1996 Southern Pacific Coast Line setting (Gilroy–Watsonville), timetable conventions, rulebook & equipment eras, and US&S / AREMA nomenclature guide |
 | **[Capability Clusters](docs/clusters/README.Clusters.md)** | Transport-agnostic normative reference for all 14 general and railroad capability clusters (`MAINTENANCE`, `GROUPS`, `POSITION`, `TURNOUT`, `MAST`, `APB`, etc.) |

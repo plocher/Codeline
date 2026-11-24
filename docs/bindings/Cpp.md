@@ -1,6 +1,6 @@
 [![Codeline](../images/codeline-logo.svg)](../../README.md)
 [Studio](../Studio.md) · [Codeline](../Codeline.md) · **[Smart Appliances](../SmartAppliances.md)**  
-↳ [Appliances](../appliances/README.Appliances.md) · [Clusters](../clusters/README.Clusters.md) · **▸ C++ Binding** · [MQTT Binding](MQTT.md) · *uPython Binding*
+↳ [Appliances](../appliances/README.Appliances.md) · [Clusters](../clusters/README.Clusters.md) · **▸ C++ Binding** · [MQTT Binding](MQTT.md) · [Building](../BuildingAppliances.md) · *uPython Binding*
 ---
 ---
 # Smart Appliance C++ In-Process Binding, Reference Core & Test Harness

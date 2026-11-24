@@ -1,6 +1,6 @@
 [![Codeline](../images/codeline-logo.svg)](../../README.md)
 [Studio](../Studio.md) · [Codeline](../Codeline.md) · **[Smart Appliances](../SmartAppliances.md)**  
-↳ [Appliances](../appliances/README.Appliances.md) · [Clusters](../clusters/README.Clusters.md) · [C++ Binding](Cpp.md) · **▸ MQTT Binding** · *uPython Binding*
+↳ [Appliances](../appliances/README.Appliances.md) · [Clusters](../clusters/README.Clusters.md) · [C++ Binding](Cpp.md) · **▸ MQTT Binding** · [Building](../BuildingAppliances.md) · *uPython Binding*
 ---
 ---
 # Smart Appliance MQTT Transport &<BR>&nbsp;Topic Wire Encoding Binding

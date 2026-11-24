@@ -48,25 +48,11 @@ As physical electronics come online under the benchwork, Studio discovers and co
 
 ---
 
-## 4. Hardware Bindings and Legacy Layout Import
+## 4. Generating Hardware Bindings & Benchwork Documentation
 
-Studio connects logical trackplan appliances to physical hardware incrementally—allowing simulated endpoints, native microcontrollers, and legacy buses to run side by side on the same layout:
-- **Smart Appliances** expose a functional interface over MQTT that is discoverable and decoupled.
+From one verified layout model, Studio connects logical trackplan appliances to physical hardware incrementally—so simulated endpoints, native microcontrollers, and legacy bus proxies can run side by side on the same layout:
 
-- **A smart appliance builder** helps you turn your layout devices into smart appliances for use directly in Studio.
+- **Appliance Builder & Legacy Import**: Assign logical appliances to direct microcontroller pin bundles (or manual per-wire pin maps) and import existing JMRI, CATS, or C/MRI configurations to instantiate Proxy Appliances without re-entering hardware addresses.
+- **Firmware & Shop Documentation Output**: Generate ready-to-deploy microcontroller firmware/scripts (C++ or future MicroPython targets), C/MRI configurations, 1:1 under-board cardstock mounting templates, workbench cable loom diagrams, and NMRA/AREMA bungalow inspection packets.
 
-- **Default Pin Bundles *or* Manual "Rat's-Nest" Routing**: For new construction, each hardware binding suggests a contiguous **pin bundle** (e.g., 6 consecutive outputs on `IOX0` for a 2-head mast, or `M, N, R, OCC` for a switch) so an appliance drops onto a board port in one step. For existing layouts whose wiring grew organically across multiple cards, manual per-wire routing documents the exact pins as wired.
-- **Layout-Proof Active-Low Defaults**: To avoid phantom occupancy from floating inputs and reduce short-circuit risk on long harness runs, **Active-Low** is the universal hardware-binding default (grounding inputs to assert, sinking current on outputs), with cascading overrides from layout-wide down to chip type, board, bank, or individual pin.
-- **Import Existing JMRI, CATS, or C/MRI Configurations**: Rather than re-entering hundreds of hardware addresses—or keeping JMRI running solely as a middleman—Studio imports existing JMRI, CATS, or C/MRI configuration files to instantiate [**Proxy Appliances**](SmartAppliances.md#3-proxy-appliances-wrapping-external-cmri-loconet-lcc-and-jmri-buses) and drive `C/MRI`, `LocoNet`, and `LCC` buses directly.
-
----
-
-## 5. Benchwork-First Wiring Documentation & Code Generation
-
-From one verified layout model, Studio generates ready-to-deploy microcontroller firmware/scripts (such as Arduino/ESP32 C++ or future MicroPython targets—combining Reference Appliance Cores, hardware drivers, and selected Local/Mirror/MQTT binding glue), C/MRI configurations, and physical shop documentation built for working under the layout with a flashlight:
-
-![Generated Benchwork Documentation: Under-Board Cardstock Template and Wire Harness Diagram](images/05-wiring-documentation.svg)
-
-- **1:1 Under-Board Cardstock Mounting Templates**: For I/O boards such as `cpNode-IOX` (and its PWM and Servo variants), Studio prints a 1:1 scale cardstock backing sheet that mounts directly behind the PCB on its standoffs. Around the perimeter—aligned with each 4-pin pluggable Phoenix terminal block (`Pins 16–1`), daughterboard socket (`IOX-Darlington`, `IOX-Monitor`), I²C header, and address DIP switch (`0x20`)—it prints wire names, colors, appliance IDs, and `[EMULATED]` / `[SPARE]` markers so the board carries its own permanent under-layout documentation.
-- **Workbench Wire Harness & Cable Loom Diagrams**: Aviation-style harness drawings (`Loom L-830WAB`, `Loom L-829`) show the exact fan-in from each appliance pigtail, through the multi-conductor cable trunk, to the numbered pins on the mating Phoenix plugs (`J2`, `J12`, `J11`, `J16`) so harnesses can be built, labeled, and continuity-tested at the workbench.
-- **NMRA Electrical & Prototype Bungalow Inspection Packets**: Studio outputs block, turnout, and signal schematics suitable for **NMRA Master Model Railroader (Electrical AP)** documentation, alongside **AREMA / DOT-style bungalow checkout sheets** for verifying lamp current sink, polarity, and OS drop tests.
+See [**Building & Wiring Smart Appliances**](BuildingAppliances.md) for the Reference Core + Driver Port architecture, Direct and Proxy hardware realizations, pin-bundle and Active-Low conventions, and benchwork wiring artifacts.
