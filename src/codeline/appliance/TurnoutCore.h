@@ -45,8 +45,8 @@ public:
   // its controls), so it cannot restart emulated transit.
   void setAlignment(TurnoutCommand cmd) override {
     if (!booted_ || cmd == TurnoutCommand::Unchanged) return;
+    cycle_.throws_left = 0;  // an operational command ends a bench cycle, also one the points already move toward
     if (moving_ && cmd == target_) return;
-    cycle_.throws_left = 0;  // an operational command ends a bench cycle
     command(cmd);
   }
 
@@ -117,7 +117,7 @@ public:
   // Clears maintenance.faulted only if the fault condition is resolved.
   void clearFault() override {
     if (!accepts(MaintenanceCommand::ClearFault)) return;
-    if (!contactsShorted(driver_.readContacts())) set(TurnoutAttr::MaintenanceFaulted, 0);
+    if (!contactsShorted(driver_.readContacts()) && nvValid()) set(TurnoutAttr::MaintenanceFaulted, 0);
   }
 
   // All-or-nothing: one entry that is unknown, not NV config, or out of range
@@ -227,6 +227,16 @@ private:
       }
     }
     return ok;
+  }
+
+  // For clearFault(): every stored NV value is still in range (as MaintenanceCore::nvValid).
+  bool nvValid() const {
+    for (uint8_t i = 0; i < kTurnoutAttrCount; ++i) {
+      const AttributeInfo& a = kTurnoutAttributes[i];
+      uint32_t v = 0;
+      if (a.persistence != Persistence::Volatile && nv_.load(a.path, v) && !isValid(a, AttrValue{v})) return false;
+    }
+    return true;
   }
 
   // ---- RESTART BEHAVIOR (power-on and online()) ----

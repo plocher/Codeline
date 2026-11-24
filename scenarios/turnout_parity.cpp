@@ -260,6 +260,31 @@ TURNOUT_SCENARIO("out-of-range NV config raises CONFIG_ERROR and boots on defaul
 
 // ---- review findings: each of these failed before its fix ------------------
 
+TURNOUT_SCENARIO("an operational command toward where a bench cycle is already throwing ends the cycle") {
+  Recorder rec;
+  boot(rig, rec);
+  rig.turnout().offline();
+  rig.turnout().cycle(3, 500);
+  rig.tick(50);
+  CHECK(rig.driver().driveCount() == 1);  // the first throw, toward REVERSE, is under way
+  rig.turnout().setAlignment(TurnoutCommand::Reverse);
+  for (uint32_t t = 100; t <= 20000; t += 50) rig.tick(t);
+  CHECK(rig.driver().driveCount() == 1);  // no throw back: the cycle is over
+  CHECK(rig.turnout().state() == TurnoutState::Reverse);
+}
+
+TURNOUT_SCENARIO("CLEAR FAULT leaves the fault while a stored NV value is still out of range") {
+  Recorder rec;
+  rig.nv().save("turnout.feedback_regime", 7);
+  rig.turnout().setObserver(&rec);
+  rig.tick(0);
+  CHECK(rec.last(EventKind::Fault)->fault == FaultType::ConfigError);
+  rig.turnout().offline();
+  rig.turnout().clearFault();
+  rig.turnout().exportAttributes();
+  CHECK(rec.lastValue(EventKind::Attributes, "maintenance.faulted") == 1);
+}
+
 static void useRegime(TurnoutRig& rig, FeedbackRegime regime) {
   rig.turnout().offline();
   rig.turnout().setAttribute("turnout.feedback_regime", SetOp::Assign, AttrValue::enumerator(regime));
