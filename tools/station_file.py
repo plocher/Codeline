@@ -551,8 +551,9 @@ def build(project: Path, station: str) -> tuple[list[str], list[str]]:
     if len(charts) != 1:
         return [], [f"no station named {station!r}"]
     st = Station(model, charts[0])
-    problems = [f"{p['where']}: {p['text']}" for p in result["problems"]
-                if p["where"].startswith("interlockings/" + station)]
+    # A chart problem is the whole project's (it is located by office unit, not by station), and
+    # the deriver itself exits 1 on any: no station file is written from a chart with problems.
+    problems = [f"{p['where']}: {p['text']}" for p in result["problems"]]
     try:
         source = str(project.resolve().relative_to(Path.cwd()))
     except ValueError:

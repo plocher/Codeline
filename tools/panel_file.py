@@ -478,8 +478,9 @@ def build(model: dict, charts: list[dict], chart_problems: list[dict], project: 
         return None, [f"no station named {station!r}"]
     chart = found[0]
     lines, problems = station_file.build(project, station)
-    # A chart problem is the whole project's: the deriver itself exits 1 on any.
-    problems = list(problems) + [f"{p['where']}: {p['text']}" for p in chart_problems]
+    # A chart problem is the whole project's: the deriver itself exits 1 on any. (station_file
+    # reports them too; each is listed once.)
+    problems = list(dict.fromkeys(list(problems) + [f"{p['where']}: {p['text']}" for p in chart_problems]))
     if problems:
         return None, problems
     records = _records(lines)
