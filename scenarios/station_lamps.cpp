@@ -67,14 +67,14 @@ SCENARIO("Sargent HBA: the alarm lamp follows the contact, and is lit whenever t
   Station s("build/Sargent.station");
   CHECK(s.ok);
   CHECK(s.shows("(HBAK)"));  // detector healthy and quiet
-  s.simulate("sensor/HBA", "SHUNT");
+  s.simulate("sensor/Sargent:HBA", "SHUNT");
   CHECK(s.shows("HBAK"));
-  s.simulate("sensor/HBA", "(SHUNT)");
+  s.simulate("sensor/Sargent:HBA", "(SHUNT)");
   s.run(1500);  // the sensor's dropout hold-off (Cluster:HOLDOFF, 1500 ms)
   CHECK(s.shows("(HBAK)"));
-  s.simulate("sensor/HBA", "(POWER)");  // the detector dies: not known quiet, so the alarm shows
+  s.simulate("sensor/Sargent:HBA", "(POWER)");  // the detector dies: not known quiet, so the alarm shows
   CHECK(s.shows("HBAK"));
-  s.simulate("sensor/HBA", "POWER");
+  s.simulate("sensor/Sargent:HBA", "POWER");
   s.run(3000);
   CHECK(s.shows("(HBAK)"));
 }

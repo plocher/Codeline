@@ -41,7 +41,7 @@ struct Corporal {
 
   using Initial = std::vector<std::pair<std::string, std::string>>;
 
-  explicit Corporal(uint32_t turnout_travel_ms = 1000, const Initial& initial = {{"turnout/829", "REVERSE"}},
+  explicit Corporal(uint32_t turnout_travel_ms = 1000, const Initial& initial = {{"turnout/Corporal:829", "REVERSE"}},
                     const char* file = "build/Corporal.station") {
     std::string error;
     ok = station::loadStationFile(file, spec, error);
@@ -117,7 +117,7 @@ struct Corporal {
 SCENARIO("a control frame the plant finds unsafe: one line names the outcome and the hazard, an occupied circuit") {
   Corporal p;
   CHECK(p.ok);
-  p.world("sensor/829T1", "SHUNT");
+  p.world("sensor/Corporal:829T1", "SHUNT");
   p.run(500);
   p.code(kClear);
   CHECK(p.said("track circuit 829T1 clear -> occupied"));
@@ -140,7 +140,7 @@ SCENARIO("a control frame applied, malformed and out of sync each say so, with w
 
 SCENARIO("every line is unretained and opens with the plant time of the tick it was said in") {
   Corporal p;
-  p.world("sensor/832T", "SHUNT");
+  p.world("sensor/Corporal:832T", "SHUNT");
   p.run(100);
   size_t n = 0;
   for (size_t i = p.mark; i < p.broker.log().size(); ++i) {
@@ -218,7 +218,7 @@ SCENARIO("the plant snapshot is retained, changes when a route clears, and says 
 
 SCENARIO("a cancel under an approaching train: the route's states and the time locking timer, started and expired, and a snapshot once a second") {
   Corporal p;
-  p.world("sensor/832T", "SHUNT");  // a train in rear of 830WAB
+  p.world("sensor/Corporal:832T", "SHUNT");  // a train in rear of 830WAB
   p.code(kClear);
   p.run(3000);
   p.mark = p.broker.log().size();
@@ -247,11 +247,11 @@ SCENARIO("a train takes the signal: the route traverses and releases, said with 
   Corporal p;
   p.code(kClear);
   p.run(3000);
-  p.world("sensor/829T1", "SHUNT");
+  p.world("sensor/Corporal:829T1", "SHUNT");
   p.run(200);
   CHECK(p.said(std::string(kRoute) + " Cleared -> Traversing: a train accepted signal 830WAB (829T1 occupied), sectional release"));
   CHECK(p.shows(std::string(kRoute) + " Traversing: train on the route, holds switches 829,827,827D, until 829T1 clear"));
-  p.world("sensor/829T1", "(SHUNT)");
+  p.world("sensor/Corporal:829T1", "(SHUNT)");
   p.run(3000);
   CHECK(p.said(std::string(kRoute) + " Traversing -> Idle: the train is off the route, route released"));
 }
@@ -260,12 +260,12 @@ SCENARIO("an appliance's health changing is said, and a signal it puts to STOP n
   Corporal p;
   p.code(kClear);
   p.run(3000);
-  p.world("sensor/827T1", "(POWER)");
+  p.world("sensor/Corporal:827T1", "(POWER)");
   p.run(500);
   CHECK(p.said("health track circuit 827T1 OK -> UNAVAILABLE"));
   CHECK(p.said("signal 830WAB put to STOP, route 830WAB-829N-827N dropped: track circuit 827T1 is not proven clear (unhealthy)"));
   CHECK(p.shows("circuit 827T1 unhealthy (UNAVAILABLE)"));
-  p.world("sensor/827T1", "POWER");
+  p.world("sensor/Corporal:827T1", "POWER");
   p.run(3000);
   CHECK(p.said("health track circuit 827T1 UNAVAILABLE -> OK"));
   CHECK(p.shows("circuit 827T1 clear"));
@@ -289,27 +289,27 @@ SCENARIO("the electric lock: release granted, a signal over it refused with the 
 }
 
 SCENARIO("the hazard named is the one that fails, not the route's first switch or first circuit") {
-  Corporal p(1000, {{"turnout/829", "NORMAL"}, {"turnout/827D", "REVERSE"}});  // the route's third switch is wrong
+  Corporal p(1000, {{"turnout/Corporal:829", "NORMAL"}, {"turnout/Corporal:827D", "REVERSE"}});  // the route's third switch is wrong
   p.code(kClear);
   p.run(100);
   CHECK(p.said("signal 830 LEFT demand dropped, nothing cleared: route 830WAB-829N-827N: "
                "switch 827D is not proven NORMAL (it reports REVERSE)"));
   Corporal q;
-  q.world("sensor/827T1", "SHUNT");  // the route's second circuit
+  q.world("sensor/Corporal:827T1", "SHUNT");  // the route's second circuit
   q.run(500);
   q.code(kClear);
   CHECK(q.said("control frame vital ignored: signal 828 LEFT, route 830WAB-829N-827N: track circuit 827T1 is occupied"));
   Corporal r;
   r.code(kClear);
   r.run(3000);
-  r.world("sensor/827T1", "SHUNT");  // not the entrance circuit: no train took the signal
+  r.world("sensor/Corporal:827T1", "SHUNT");  // not the entrance circuit: no train took the signal
   r.run(500);
   CHECK(r.said("signal 830WAB put to STOP, route 830WAB-829N-827N dropped: track circuit 827T1 is occupied"));
 }
 
 SCENARIO("a power switch at the wanted end but out of correspondence is said so, not 'not proven REVERSE (it reports REVERSE)'") {
   Corporal p;  // 829 found reversed: that is its demand
-  p.world("turnout/829", "NORMAL");  // thrown by hand, against the demand
+  p.world("turnout/Corporal:829", "NORMAL");  // thrown by hand, against the demand
   p.run(500);
   CHECK(p.said("switch 829 reports NORMAL (was REVERSE)"));
   p.code("CHART 85973c19 (829NWS) (829RWS) (827WLS) 828WGS (828EGS) (828HS) 830WGS (830EGS) (830HS) (1MCS)");
@@ -331,7 +331,7 @@ SCENARIO("what locks a switch names a route awaiting proof of STOP and a route a
   CHECK(p.said(std::string(kRoute) + " Releasing -> Idle: mast 830WAB proven at STOP and no train approaching, route released"));
   p.code(kClear);
   p.run(1000);
-  p.world("sensor/829T1", "SHUNT");
+  p.world("sensor/Corporal:829T1", "SHUNT");
   p.run(1000);
   CHECK(p.shows("switch 829 power NORMAL locked by detector locking (829T1 not proven clear), route 830WAB-829N-827N (train on the route)"));
   CHECK(p.shows("switch 827 hand NORMAL locked by lock 827, route 830WAB-829N-827N (train on the route)"));
@@ -339,13 +339,13 @@ SCENARIO("what locks a switch names a route awaiting proof of STOP and a route a
 
 SCENARIO("a switch demand the next scan's locks forbid is dropped, and said with what locks it") {
   Corporal p;
-  p.world("sensor/829T1", "SHUNT");  // a train reaches the OS circuit...
+  p.world("sensor/Corporal:829T1", "SHUNT");  // a train reaches the OS circuit...
   p.code("CHART 85973c19 829NWS (829RWS) (827WLS) (828WGS) (828EGS) (828HS) (830WGS) (830EGS) (830HS) (1MCS)");  // ...before the plant has scanned it
   CHECK(p.said("control frame applied"));  // safe as of the last scan
   p.run(100);
   CHECK(p.said("switch 829 demand NORMAL dropped: locked by detector locking (829T1 not proven clear)"));
   CHECK(p.shows("switch 829 power REVERSE locked by detector locking (829T1 not proven clear)"));
-  CHECK(p.commands("turnout/829") == 0);
+  CHECK(p.commands("turnout/Corporal:829") == 0);
 }
 
 SCENARIO("refusals in words: a lock released in the signal's own frame, two signals that conflict, a release under a train, time locking") {
@@ -359,19 +359,19 @@ SCENARIO("refusals in words: a lock released in the signal's own frame, two sign
   p.code(kNothing);
   CHECK(p.lines() == std::vector<std::string>{"control frame applied"});
   // A train on the route, the section over 827 already released: 827 is free, the route is not idle.
-  p.world("sensor/832T", "SHUNT");
+  p.world("sensor/Corporal:832T", "SHUNT");
   p.code(kClear);
   p.run(3000);
-  p.world("sensor/829T1", "SHUNT");
+  p.world("sensor/Corporal:829T1", "SHUNT");
   p.run(500);
-  p.world("sensor/827T1", "SHUNT");
+  p.world("sensor/Corporal:827T1", "SHUNT");
   p.run(500);
-  p.world("sensor/827T1", "(SHUNT)");
+  p.world("sensor/Corporal:827T1", "(SHUNT)");
   p.run(3000);
   CHECK(p.shows("switch 827 hand NORMAL locked by lock 827"));
   p.code("CHART 85973c19 (829NWS) (829RWS) 827WLS (828WGS) (828EGS) (828HS) (830WGS) (830EGS) (830HS) (1MCS)");
   CHECK(p.said("control frame vital ignored: lock 827 release: route 830WAB-829N-827N over switch 827 is Traversing"));
-  p.world("sensor/829T1", "(SHUNT)");
+  p.world("sensor/Corporal:829T1", "(SHUNT)");
   p.run(3000);
   // Time locking: clear again, cancel under the approaching train, ask again.
   p.code(kClear);
@@ -397,18 +397,18 @@ SCENARIO("a control frame's stored demand shows in the snapshot at once, before 
 
 SCENARIO("the lock's request button and a field contact are said when they change") {
   Corporal p;
-  p.world("control/lock:827", "BTN1");
+  p.world("control/Corporal:lock:827", "BTN1");
   p.run(100);
   CHECK(p.said("lock 827 request button pressed"));
   CHECK(p.shows("lock 827 locked, request button held"));
-  p.world("control/lock:827", "(BTN1)");
+  p.world("control/Corporal:lock:827", "(BTN1)");
   p.run(100);
   CHECK(p.said("lock 827 request button released"));
   CHECK(p.shows("lock 827 locked"));
   Corporal s(1000, {}, "build/Sargent.station");
   CHECK(s.ok);
   CHECK(s.shows("contact HBA open"));
-  s.world("sensor/HBA", "SHUNT");
+  s.world("sensor/Sargent:HBA", "SHUNT");
   s.run(500);
   CHECK(s.said("contact HBA open -> closed"));
   CHECK(s.shows("contact HBA closed"));
@@ -426,7 +426,7 @@ SCENARIO("the debug connection is lost: the station runs on, the will says UNAVA
   CHECK(p.host->field().counts().applied == 1);
   CHECK(p.clients["Corporal-debug"]->connected());
   CHECK(p.shows(std::string(kRoute) + " Cleared: mast 830WAB demanded APPROACH, shows APPROACH"));
-  p.world("sensor/832T", "SHUNT");
+  p.world("sensor/Corporal:832T", "SHUNT");
   p.run(100);
   CHECK(p.said("track circuit 832T clear -> occupied"));  // and it speaks again
 }

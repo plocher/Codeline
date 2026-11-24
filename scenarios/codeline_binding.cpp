@@ -41,7 +41,7 @@ struct Corporal {
     indications_topic = station::stationTopic(spec.codeline_channel, spec.chart.station) + "/indications";
     station::HostConfig config;
     config.time_locking_ms = 3000;
-    config.initial.emplace_back("turnout/829", "REVERSE");
+    config.initial.emplace_back("turnout/Corporal:829", "REVERSE");
     host = std::make_unique<station::StationHost>(spec, config, [this](const std::string& id) {
       auto c = std::make_unique<mqtt::InMemoryMockBroker::Client>(broker);
       clients[id] = c.get();
@@ -136,7 +136,7 @@ SCENARIO("out of sync: another chart identity is ignored as a whole; the answer 
         CodeLineField::Outcome::OutOfSync);
   p.run(3000);
   CHECK(p.host->field().counts().out_of_sync == 1);
-  CHECK(p.commands("turnout/829") == 0);
+  CHECK(p.commands("turnout/Corporal:829") == 0);
   CHECK(p.indications() == kSettled);  // CHART 85973c19, 829 still reversed, 1MC dark
 }
 
@@ -160,7 +160,7 @@ SCENARIO("malformed: missing, extra, repeated, unknown, out-of-order terms or tw
   for (const char* frame : bad) CHECK(p.code(frame) == CodeLineField::Outcome::Malformed);
   p.run(3000);
   CHECK(p.host->field().counts().malformed == sizeof(bad) / sizeof(bad[0]));
-  CHECK(p.commands("turnout/829") == 0);
+  CHECK(p.commands("turnout/Corporal:829") == 0);
   CHECK(p.indications() == kSettled);  // not even the non-vital 1MCS was applied
 }
 
@@ -176,11 +176,11 @@ SCENARIO("valid but unsafe: every vital control is ignored, the maintainer call 
   Corporal p;
   CHECK(p.code(kClear) == CodeLineField::Outcome::Applied);
   p.run(3000);
-  const size_t cmds = p.commands("turnout/829");
+  const size_t cmds = p.commands("turnout/Corporal:829");
   CHECK(p.code("CHART 85973c19 (829NWS) 829RWS (827WLS) (828WGS) (828EGS) (828HS) (830WGS) (830EGS) 830HS 1MCS") ==
         CodeLineField::Outcome::VitalIgnored);  // 829 is route locked under 830WAB
   p.run(1000);
-  CHECK(p.commands("turnout/829") == cmds);
+  CHECK(p.commands("turnout/Corporal:829") == cmds);
   CHECK(p.indications() ==
         "CHART 85973c19 829NWK (829RWK) (827WLK) (827WLQK) 828WGK (828EGK) (828TEK) 830WGK (830EGK) (830TEK) 1MCK "
         "(827T1K) (829T1K)");
@@ -195,7 +195,7 @@ SCENARIO("rule 1: a control delivered retained is discarded unread, live or stor
   p.run(3000);
   CHECK(p.host->field().counts().retained_dropped == 2);
   CHECK(p.host->field().counts().applied == 0);
-  CHECK(p.commands("turnout/829") == 0);
+  CHECK(p.commands("turnout/Corporal:829") == 0);
   CHECK(p.indications() == kSettled);
   p.office.publish(p.controls_topic, "", true);  // clear the stored copy
 }
@@ -212,7 +212,7 @@ SCENARIO("rule 3: the field's will publishes retained UNAVAILABLE; a clean shutd
 SCENARIO("an indication that changes is published without a control frame") {
   Corporal p;
   const size_t before = p.published(p.indications_topic);
-  p.office.publish(p.spec.simulation_channel + "/sensor/829T1", "SHUNT", false);
+  p.office.publish(p.spec.simulation_channel + "/sensor/Corporal:829T1", "SHUNT", false);
   p.run(100);
   CHECK(p.published(p.indications_topic) == before + 1);
   CHECK(p.indications() ==
@@ -230,12 +230,12 @@ SCENARIO("a control frame sent before the plant's first scan is never read: noth
   CHECK(c.applied + c.vital_ignored + c.malformed + c.out_of_sync + c.retained_dropped == 0);
   CHECK(p.published(p.indications_topic) == 0);  // no answer: the field is not on the code line yet
   p.run(5000);
-  CHECK(p.commands("turnout/829") == 0);
+  CHECK(p.commands("turnout/Corporal:829") == 0);
   CHECK(p.indications() == kSettled);
   CHECK(p.code("CHART 85973c19 829NWS (829RWS) (827WLS) (828WGS) (828EGS) (828HS) (830WGS) (830EGS) (830HS) 1MCS") ==
         CodeLineField::Outcome::Applied);  // once the plant runs, the same frame is read
   p.run(3000);
-  CHECK(p.commands("turnout/829") == 1);
+  CHECK(p.commands("turnout/Corporal:829") == 1);
 }
 
 SCENARIO("a clean stop leaves every appliance's /state and the indications retained UNAVAILABLE, as the wills would") {

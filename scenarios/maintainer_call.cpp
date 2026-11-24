@@ -368,7 +368,7 @@ SCENARIO("a lamp unavailable from the start never shows 1MCK and stops nothing e
 SCENARIO("the call is applied even when the frame's vital part is refused: the lamp lights, the switch does not move") {
   Corporal s;
   CHECK(s.ok);
-  s.world("sensor/829T1", "SHUNT");  // the OS of 829 is occupied: detector locking
+  s.world("sensor/Corporal:829T1", "SHUNT");  // the OS of 829 is occupied: detector locking
   s.run(500);
   CHECK(s.shows("829T1K"));
   s.mark = s.broker.log().size();
@@ -376,7 +376,7 @@ SCENARIO("the call is applied even when the frame's vital part is refused: the l
   CHECK(s.host->field().counts().vital_ignored == 1);
   CHECK(s.host->field().counts().applied == 0);
   s.run(1000);
-  CHECK(s.sent(s.spec.appliance_channel + "/turnout/829/cmd").empty());  // the vital part did nothing
+  CHECK(s.sent(s.spec.appliance_channel + "/turnout/Corporal:829/cmd").empty());  // the vital part did nothing
   CHECK(s.shows("829NWK"));
   CHECK(s.sent(s.lamp + "/cmd") == "ON");  // the call did
   CHECK(s.shows("1MCK"));

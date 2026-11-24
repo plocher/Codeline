@@ -290,7 +290,7 @@ SCENARIO("CP Corporal on a paused clock: time locking stands still however long 
   };
   pass(5000);  // startup time locking expires
   CHECK(!timing());
-  person.publish(spec.simulation_channel + "/sensor/832T", "SHUNT", false);
+  person.publish(spec.simulation_channel + "/sensor/Corporal:832T", "SHUNT", false);
   person.publish(codeline + "/controls", "CHART 85973c19 829NWS (829RWS) (827WLS) 828WGS (828EGS) (828HS) 830WGS (830EGS) (830HS) (1MCS)", false);
   pass(3000);
   person.publish(codeline + "/controls", "CHART 85973c19 (829NWS) (829RWS) (827WLS) (828WGS) (828EGS) 828HS (830WGS) (830EGS) 830HS (1MCS)", false);

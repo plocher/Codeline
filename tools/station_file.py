@@ -106,15 +106,21 @@ STOPGAPS = {
          "contact": "sensor", "lamp": "lamp"},
         "The project file gives an appliance kind (given.Appliance), not its Smart Appliance role; "
         "this mapping follows docs/appliances/README.Appliances.md."),
+    "id": (
+        "{interlocking}:{name}",
+        "The project file states no appliance id, and a name is unique only within its "
+        "interlocking (Christopher and Sargent each have a track circuit 01T). On the appliance "
+        "channel every appliance is fully qualified (owner ruling): its id is its interlocking and "
+        "its name (Corporal:829T1). The station keeps the bare name for its own records and for the "
+        "code line."),
     "id.lock": (
-        "lock:{name}",
-        "The lock lever device has Name 827; its CONTROL id lock:827 is the example of "
-        "docs/bindings/MQTT.md section 5a, not a project-file fact."),
+        "{interlocking}:lock:{name}",
+        "The lock lever device has Name 827; lock:827 is the CONTROL id of docs/bindings/MQTT.md "
+        "section 5a, not a project-file fact. Qualified by the interlocking like every id."),
     "id.lamp": (
         "{interlocking}:{name}",
         "The maintainer call lamp device has Name 1MC in every interlocking; each station has its "
-        "own lamp, so its LAMP id is qualified by the interlocking (Corporal:1MC), in the style of "
-        "lock:827. The project file states no appliance id."),
+        "own lamp, so its LAMP id is qualified by the interlocking (Corporal:1MC), like every id."),
     "lock.nv": (
         "lever.inputs:1,lever.outputs:1,button.inputs:1,button.mode:LEVEL",
         "MQTT.md section 5a's lock:827 profile (SW1 lock open, BTN1 request, LAMP1 release lamp). "
@@ -487,12 +493,15 @@ class Station:
         # A circuit the chart indicates is in the plant even where no route runs over it.
         used.update(f["appliance"] for f in ch["indications"]
                     if f["class"] == "track_circuit" and f["appliance"] in circuits)
+        def wire(name: str) -> str:
+            return stopgap("id").format(interlocking=self.ix_name, name=name)
+
         for c in sorted(used, key=codeline_chart._natural):
-            out.append(f"circuit {c} {roles['track_circuit']} {c}")
+            out.append(f"circuit {c} {roles['track_circuit']} {wire(c)}")
         for sw in switches:
             kind = "power" if sw in commanded else "hand"
             os = self.switch_circuit(self.apps[sw]) or "-"
-            out.append(f"switch {sw} {kind} {roles['switch']} {sw} os={os} "
+            out.append(f"switch {sw} {kind} {roles['switch']} {wire(sw)} os={os} "
                        f"travel_timeout_ms={stopgap('travel_timeout_ms')}")
         lock_fns = sorted({f["appliance"] for f in controls if f["class"] == "lock"})
         for name in lock_fns:
@@ -509,13 +518,13 @@ class Station:
             for sw in covered:
                 if sw not in switches:
                     self.problems.append(f"lock {name}: covers {sw}, which no route uses")
-            out.append(f"lock {name} {roles['lock']} {stopgap('id.lock').format(name=name)} switches={','.join(covered)} "
+            out.append(f"lock {name} {roles['lock']} {stopgap('id.lock').format(interlocking=self.ix_name, name=name)} switches={','.join(covered)} "
                        f"nv={stopgap('lock.nv')}")
         for lever in levers:
             out.append(f"lever {lever} time_locking_ms={stopgap('time_locking_ms')}")
         for n in sorted(masts, key=codeline_chart._natural):
             heads = [h for h in masts[n]["given"].get("heads", "").split(",") if h]
-            out.append(f"mast {n} {roles['mast']} {n} nv=mast.heads:{len(heads)}")
+            out.append(f"mast {n} {roles['mast']} {wire(n)} nv=mast.heads:{len(heads)}")
         for c in calls:
             lamp = self.call_lamp(c)
             out.append(f"call {c} {roles['lamp']} {lamp}" if lamp else f"call {c}")
@@ -523,7 +532,7 @@ class Station:
         for n in lamp_fns:
             kind = self.apps.get(n, {}).get("given", {}).get("Appliance")
             if kind == "contact":
-                out.append(f"contact {n} {roles['contact']} {n}")
+                out.append(f"contact {n} {roles['contact']} {wire(n)}")
             else:
                 out.append(f"# STOPGAP lamp {n}: the project file names no source for this lamp; it reads dark")
                 out.append(f"lamp {n}")

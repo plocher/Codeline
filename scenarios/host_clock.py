@@ -1,16 +1,17 @@
-"""Two real station hosts on a real broker: the clock they share, and an appliance they share.
+"""Two real station hosts on a real broker: the clock they share, and a name they share.
 
-Starts mosquitto on a free port, then build/codeline_host for Christopher and for Sargent, the
-second with --remote sensor/01T (the track circuit both list; Christopher's host simulates it).
+Starts mosquitto on a free port, then build/codeline_host for Christopher and for Sargent. Each
+has a track circuit named 01T; on the appliance channel they are two appliances, each fully
+qualified by its interlocking (sensor/Christopher:01T, sensor/Sargent:01T).
 
 The clock (src/codeline/station/SimClock.h), by commands on {simulation}/clock:
   - PAUSE: both hosts state PAUSED and T stands still;
   - STEP n: T moves by exactly n on each host, in about n ms of real time, and ends PAUSED;
   - RATE 100, RUN: plant time runs at a tenth of real time;
   - each change of mode is said on the station's debug channel ("clock PAUSED RATE 1000").
-The shared appliance:
-  - the broker saw one client for sensor/01T, not two;
-  - one SHUNT on the simulation channel shows as occupied in both stations' debug snapshots;
+The two circuits named 01T:
+  - the broker saw one client for each of sensor/Christopher:01T and sensor/Sargent:01T;
+  - a SHUNT of Christopher's shows as occupied in Christopher's debug snapshot and not in Sargent's;
   - a host told --remote for an appliance its station does not have refuses to start.
 """
 from __future__ import annotations
@@ -55,7 +56,7 @@ def main() -> int:
     signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError(f"over {LIMIT_S} s")))
     signal.alarm(LIMIT_S)
     clock_name = "two real hosts, one clock: PAUSE holds T, STEP n moves T by exactly n and ends PAUSED, RATE scales, and the debug channel says each change"
-    remote_name = "two real hosts, one shared track circuit: one host simulates it (--remote on the other), both plants read it"
+    remote_name = "two real hosts, each with a track circuit 01T: two appliances, and a shunt of one is not seen by the other"
     broker = watch = None
     hosts: list[Host] = []
     tmp = Path(tempfile.mkdtemp(prefix="codeline-clock-"))
@@ -96,7 +97,7 @@ def main() -> int:
         watch = codeline_office.Link(url, "codeline-clock-scenario")
         codeline_office.subscribe_all(watch)
         hosts.append(Host(url, "Christopher", []))
-        hosts.append(Host(url, "Sargent", ["--remote", "sensor/01T"]))
+        hosts.append(Host(url, "Sargent", []))
         for h, s in zip(hosts, STATIONS):
             if not h.ready.wait(15):
                 print(f"    the host of {s} did not become ready: {h.proc.stderr.read().strip() if h.proc.poll() is not None else ''}")
@@ -132,14 +133,20 @@ def main() -> int:
 
         # ---- the shared appliance, while the clock runs --------------------------------------
         section = remote_name
-        watch.publish(f"{SIM}/sensor/01T", "SHUNT")
+        def shows(s: str, text: str) -> bool:
+            return f"\ncircuit 01T {text}\n" in "\n" + (last(f"{CODELINE}/{s}/debug/plant") or "")
+
+        check("Sargent's snapshot never showed circuit 01T clear", until(lambda: shows("Sargent", "clear"), 8))
+        watch.publish(f"{SIM}/sensor/Christopher:01T", "SHUNT")
+        check(f"Christopher's snapshot never showed circuit 01T occupied:\n{last(f'{CODELINE}/Christopher/debug/plant')}",
+              until(lambda: shows("Christopher", "occupied"), 8))
+        time.sleep(1.0)
+        check("Sargent's 01T followed Christopher's shunt", shows("Sargent", "clear"))
+        watch.publish(f"{SIM}/sensor/Christopher:01T", "(SHUNT)")
         for s in STATIONS:
-            check(f"{s}'s snapshot never showed circuit 01T occupied:\n{last(f'{CODELINE}/{s}/debug/plant')}",
-                  until(lambda s=s: "\ncircuit 01T occupied\n" in "\n" + (last(f"{CODELINE}/{s}/debug/plant") or ""), 8))
-        watch.publish(f"{SIM}/sensor/01T", "(SHUNT)")
-        connects = [line for line in log.read_text(errors="replace").splitlines()
-                    if "New client connected" in line and f" as {APPLIANCES}/sensor/01T " in line]
-        check(f"the broker saw {len(connects)} clients for sensor/01T, not 1", len(connects) == 1)
+            connects = [line for line in log.read_text(errors="replace").splitlines()
+                        if "New client connected" in line and f" as {APPLIANCES}/sensor/{s}:01T " in line]
+            check(f"the broker saw {len(connects)} clients for sensor/{s}:01T, not 1", len(connects) == 1)
 
         # ---- the clock -----------------------------------------------------------------------
         section = clock_name

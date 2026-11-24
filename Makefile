@@ -59,7 +59,7 @@ build/%.panel.json: $(PANEL_TOOLS) $(PROJECT)
 	@mkdir -p build
 	$(PYTHON) tools/panel_file.py $(PROJECT) --station $* > $@.tmp && mv $@.tmp $@
 
-# A second station beside Sargent for scenarios/shared_appliance.cpp (the two share sensor/01T).
+# A second station beside Sargent for scenarios/shared_appliance.cpp (each has its own 01T).
 build: build/Christopher.station
 
 build/codeline_host: src/codeline_host.cpp $(HEADERS)
@@ -72,3 +72,10 @@ build/%: scenarios/%.cpp $(HEADERS)
 
 clean:
 	rm -rf build
+
+run:
+	cd /Users/jplocher/Dropbox/workspace/Codeline && uv run python tools/run_layout.py
+
+tunnel:
+	cloudflared tunnel --config ~/.cloudflared/codeline.json run
+
