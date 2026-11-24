@@ -47,8 +47,8 @@ export class FieldView {
     bar.append(el("h2", "", this.panel.station), this.linkNote, this.note);
     this.root.appendChild(bar);
     this.root.appendChild(el("p", "hint",
-      "Click a track to shunt or clear its circuit (place and move a train). Click a switch to throw it by hand; " +
-      "shift-click a switch to shunt its own circuit. Click a lock or contact lamp to open or close it. " +
+      "Click a track, or a switch, to shunt or clear its circuit (place and move a train). " +
+      "Shift-click a switch to throw it by hand. Click a lock or contact lamp to open or close it. " +
       "What a crew has at an electrically locked switch is in the box under the track."));
 
     const drawn = drawTrackplan(this.panel.drawing, 0);
@@ -192,8 +192,10 @@ export class FieldView {
 
   clicked(element, event) {
     const f = element.field;
-    if (f.appliance && !(event.shiftKey && f.circuit)) this.toggle(f.appliance);
-    else if (f.circuit) this.toggle(f.circuit);
+    // A click places or removes a train, on a switch as on plain track; throwing the switch by
+    // hand is the rarer act and takes the shift key. Something with no circuit has only itself.
+    if (f.circuit && !(event.shiftKey && f.appliance)) this.toggle(f.circuit);
+    else if (f.appliance) this.toggle(f.appliance);
   }
 
   // ---- drawing the state

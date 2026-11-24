@@ -14,16 +14,18 @@
 // A connection that gets no CONNACK in time, a broker that goes silent, and bytes that are not
 // MQTT all end the same way: the socket is given up and the backoff runs.
 //
-// Keep-alive is long (120 s) and the ping is scheduled from the last send, so a browser that
-// throttles the timers of a background tab does not lose the connection; when the page becomes
-// visible again the client probes at once and reconnects if the broker does not answer.
+// Keep-alive is long (120 s), so a browser that throttles the timers of a background tab does
+// not lose the connection. A ping goes out every 60 s whatever else is sent, and any answer must
+// follow it: sending publishes is no sign the broker hears them, so it does not put the ping off.
+// When the page becomes visible again the client probes at once and reconnects if the broker
+// does not answer.
 //
 // What it does not do, on purpose: it never queues a publish while disconnected (a code line
 // control must not be sent late; docs/bindings/CodeLineMQTT.md section 5), has no will, no QoS 2,
 // no persistent session, no authentication.
 
 const KEEPALIVE_S = 120;
-const PING_AFTER_MS = (KEEPALIVE_S * 1000) / 2;   // of sending nothing
+const PING_EVERY_MS = (KEEPALIVE_S * 1000) / 2;
 const PROBE_WAIT_MS = 5000;                        // for any answer to a ping sent to test the link
 const CONNACK_WAIT_MS = 5000;
 const BACKOFF_FIRST_MS = 1000;
@@ -68,13 +70,14 @@ export function topicMatches(filter, topic) {
 }
 
 export class MqttClient {
-  // waits: {connackMs, probeMs} override the two waits (scenarios use short ones).
+  // waits: {connackMs, probeMs, pingMs} override the waits (scenarios use short ones).
   constructor({ url, clientId, onStatus, waits }) {
     this.url = url;
     this.clientId = clientId;
     this.onStatus = onStatus || (() => {});
     this.connackMs = (waits && waits.connackMs) || CONNACK_WAIT_MS;
     this.probeMs = (waits && waits.probeMs) || PROBE_WAIT_MS;
+    this.pingMs = (waits && waits.pingMs) || PING_EVERY_MS;
     this.subscriptions = [];          // {filter, qos, handler}
     this.pendingSubscribes = new Map();   // packet id -> [filter]
     this.connected = false;
@@ -202,7 +205,6 @@ export class MqttClient {
   send(bytes) {
     if (!this.socket || this.socket.readyState !== 1) return;
     this.socket.send(bytes);
-    if (this.connected) this.schedulePing();
   }
 
   sendSubscribe(list) {
@@ -218,12 +220,13 @@ export class MqttClient {
 
   schedulePing() {
     clearTimeout(this.pingTimer);
-    this.pingTimer = setTimeout(() => this.probe(), PING_AFTER_MS);
+    this.pingTimer = setTimeout(() => this.probe(), this.pingMs);
   }
 
   // Send a PINGREQ and expect to hear anything at all within the probe wait.
   probe() {
     if (!this.connected) return;
+    this.schedulePing();
     const asked = Date.now();
     this.send(packet(0xc0, []));
     clearTimeout(this.probeTimer);

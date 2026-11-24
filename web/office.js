@@ -363,7 +363,7 @@ export class Office {
   }
 
   code(st) {
-    if (!st.started) return;                      // its levers have no position yet
+    if (!this.current(st)) return;                // not current: its levers may have no position yet, and nothing answers
     clearTimeout(st.awaiting);
     const frame = controlFrame(st.panel, st.positions);
     if (frame.refused) {
@@ -413,7 +413,7 @@ export class Office {
   refresh() {
     for (const st of this.stations.values()) {
       const current = this.current(st);
-      st.code.disabled = !st.started;
+      st.code.disabled = !current;              // as CODE all: a station that is not current has nothing to answer
       for (const node of [st.block, ...st.columns]) node.classList.toggle("pending", !st.started);
       for (const { jewel, lamp } of st.lamps) {
         const own = Boolean(current && st.reading.asserted[lamp.indication] !== lamp.inverted);

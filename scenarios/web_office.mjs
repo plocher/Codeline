@@ -325,6 +325,19 @@ console.log("4. mqtt.js against a scripted WebSocket");
   c.close();
   check(status.at(-1)[0] === "closed", "close() ends it: no further retry");
   await sleep(50);
+
+  // (g) publishing does not put the ping off: a broker that went silent is found out
+  const busyStatus = [];
+  const busy = new MqttClient({ url: "ws://x", clientId: "b", onStatus: (st, d) => busyStatus.push([st, d]), waits: { connackMs: 60, probeMs: 40, pingMs: 60 } });
+  busy.connect();
+  s = sockets.at(-1);
+  s.accept();
+  s.give([0x20, 2, 0, 0]);
+  for (let i = 0; i < 20 && busy.connected; i++) { busy.publish("/t/out", "x"); await sleep(10); }
+  await sleep(60);
+  check(!busy.connected && s.sent.some((p) => same(p, [0xc0, 0])) && busyStatus.at(-1)[1].includes("silent"),
+    "a client that keeps publishing still pings, and gives up a broker that never answers");
+  busy.close();
   console.error = realError;
 }
 
