@@ -85,15 +85,18 @@ Every appliance exposes typed one-way asynchronous **COMMANDS**, observable phys
   - *Semaphore head*: `head.<X>` composing [`Cluster:POSITION`](../clusters/README.Clusters.md#clusterposition) (+ optional `head.<X>.lamp` composing [`Cluster:ON/OFF`](../clusters/README.Clusters.md#clusteronoff) / [`Cluster:DIMMING`](../clusters/README.Clusters.md#clusterdimming))
 
 ### BEHAVIOR & INVARIANTS
-1. **Startup State**: Initializes all heads/blades to `STOP` and emits `state() = { indication: STOP, lit: true }` *(with `apb.stick = false` and autonomous evaluation starting from `STOP` and `line = { home: false, distant: false }` if `Cluster:APB` is composed)*.
-2. **Transition & Lamp-Failure Reporting**: While a semaphore blade is moving between presets or a required head lamp is faulted, `state().indication` reports `STOP`:
+1. **Startup State**: Commands all heads/blades to `STOP` and emits `state() = { indication: STOP, lit: true }` once settled at `STOP` *(with `apb.stick = false` and autonomous evaluation starting from `STOP` and `line = { home: false, distant: false }` if `Cluster:APB` is composed)*.
+2. **Transition & Optional Head-Proof Reporting**: While a semaphore blade or searchlight vane is moving to a new aspect, the mast emits nothing and holds its prior confirmed `state().indication`, emitting a fresh `state()` report **after every completed command** once all heads reach the commanded aspect—even when the completed indication matches the prior reported value (e.g., `setIndication(STOP)` completing after a cancelled mid-motion move away from `STOP`):
    ```text
    Command                        Observed State     Physical Meaning
-   ----------------------------   ----------------   -------------------------------------------
+   ----------------------------   ----------------   ---------------------------------------------
    —                              STOP               Blade at Stop preset
-   setIndication(CLEAR, true)     STOP               Actuator moving toward Clear preset
-   —                              CLEAR              Actuator reaches Clear preset; reports CLEAR
+   setIndication(CLEAR, true)     STOP               (no emit) Actuator moving toward Clear preset
+   —                              CLEAR              Actuator reaches Clear preset; emits CLEAR
+   setIndication(STOP, true)      CLEAR              (no emit) Actuator returning toward Stop preset
+   —                              STOP               Actuator reaches Stop preset; emits STOP
    ```
+   Hardware lamp-out / head-proof sensing is **optional** and defaults to assumed-proven ("never faults") for simple LED heads without current-sensing hardware. Drivers that do monitor head health raise a `FaultEvent` on an unrecoverable head failure rather than emitting `STOP`. Because a moving mast emits nothing during motion, vital logic counts a mast as proven at `STOP` **only on a `STOP` report received after the `STOP` command**, not on a prior or cached report.
 3. **Approach Lighting (`lit`)**: `setLit(false)` / `setLit(true)` toggles lamp illumination independently of `indication`, allowing a controller to update a dark mast's indication without illuminating it.
 4. **Autonomous APB Operation**: When [`Cluster:APB`](../clusters/README.Clusters.md#clusterapb) is composed, the mast exchanges `ApbLineState(home, distant)` with adjacent signals and tracks directional stick (`apb.stick`) locally.
 

@@ -33,15 +33,15 @@ These two topics are the whole binding. Offices subscribe to `{channel}/+/indica
 
 ### Why This Scheme
 
-Three schemes exist in the donors: `/layout/<L>/codeline/<cp>/{controls,indications,json,telemetry,info}` (FieldUnit ADR 0001), `ctc/SPCoast/codeline/<station>/...` (the Subdivision project file's `layout.codelines."AAR Tokens".given.Topic`, `ctc/SPCoast/SouthCTC/codeline/`), and `codelines/.../controls` (the Walkthrough). This binding keeps FieldUnit's root and leaf words and drops the rest:
+Three schemes existed in the donors: `/layout/<L>/codeline/<cp>/{controls,indications,json,telemetry,info}` (FieldUnit ADR 0001), `ctc/SPCoast/SouthCTC/codeline/` (earlier Subdivision snapshots), and `codelines/.../controls` (earlier Walkthrough drafts). This binding keeps FieldUnit's root and leaf words and drops the rest:
 
 - **`{channel}/{name}/…` has the same shape as `{channel}/{role}/{id}/…`** on the appliance side, under the same `/layout/<L>/` root, so one broker ACL and one naming habit cover both interfaces.
 - **A separate code line channel** keeps a station name from ever colliding with an appliance role, and lets an office subscribe to the code line without seeing appliance traffic.
 - **`controls` and `indications`** are the words of the contract and of all three donors.
 - **No `json`, `telemetry`, or `info` topics.** The chart is derived from the project file on both ends, and only its identity travels (§3). Telemetry is out of scope. This also keeps the binding free of retained configuration, as on the appliance side.
-- **No processor or machine name in the path** (`SouthCTC` in the project file's topic): a station is the same station whichever office talks to it.
+- **No processor or machine name in the path** (`SouthCTC` in the older donor topic): a station is the same station whichever office talks to it.
 
-The project file's `Topic` field (`ctc/SPCoast/SouthCTC/codeline/`) should become the channel `/layout/SPCoast/codeline`; until it does, a runtime takes the channel from its own configuration.
+The project file's `layout.codelines."AAR Tokens".given.Topic` now carries `/layout/SPCoast/codeline` directly.
 
 ---
 
@@ -87,7 +87,7 @@ A control token ends in `S`; an indication token ends in `K`. `{n}` is the funct
 | `lock` | `RELEASED` / `REQUEST` | — | `{n}WLK` / `{n}WLQK` |
 | `maintainer_call` | `CALL` | `{n}S` (`1MCS`) | `{n}K` (`1MCK`) |
 | `track_circuit` | `OCCUPIED` | — | `{n}K` (`829T1K`), or `{n}` if the name already ends in `K` |
-| `lamp` | `LIT` | — | `{n}K` (`NFLK`) |
+| `lamp` | `LIT` | — | `{n}K` (`WFLK`) |
 
 **`{d}` — the signal's timetable letter.** A signal function is spelled with the timetable direction of that side of the lever, as in [**Background §4**](../Background.md#4-uss-code-line-and-arema-vital-relay-guide): `W` for westward (`830WGS`), `E` for eastward (`830EGS`). The letter is read from the project file, not configured: it is the direction letter in the names of the lever's masts that face that side (mast id = signal number, direction, heads; [**Background §2**](../Background.md#2-timetable-orientation-and-plant-naming-conventions)). Masts `830WAB` facing left give `LEFT` → `W`. If the masts on one side disagree, or none face it, the deriver reports a problem and spells nothing.
 

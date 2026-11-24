@@ -123,7 +123,7 @@ Three pieces that do not depend on each other.
 - A review of the M0–M3 code: what to keep, and what to rebuild properly.
 - Release hygiene: feature branches and pull requests, `docs/CHANGELOG.md`, CI (link check, host build, functional scenarios).
 - The remaining appliances and clusters; the full schema.
-- The rest of the subdivision; APB between control points.
+- The rest of the subdivision; APB between control points; NX / yard-entry authority (Watsonville `840` and yard selectors).
 - Python reference simulators and the MicroPython binding.
 - Direct hardware drivers (`cpNode-IOX`, `PCA9685`) and the physical CTC machine.
 - Proxy drivers (C/MRI, LocoNet, LCC) and shared-socket node-level LWT owner (`{channel}/node/{node-id}/state` + `maintenance.node`, built when the first group-hosted appliance—quad Tortoise or C/MRI proxy—arrives).
