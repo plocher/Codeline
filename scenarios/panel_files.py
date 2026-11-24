@@ -555,7 +555,9 @@ def main():
     check(len(web) >= 3, f"web/ has the page ({[q.name for q in web]})")
     hits = [(q.name, n, m.group(1)) for q in web for n, line in enumerate(q.read_text().splitlines(), 1) for m in pattern.finditer(line)]
     check(not hits, f"none of {len(searched)} fixture names (stations, levers, appliances, AAR tokens) appears in web/ {hits[:5] or ''}")
-    loads = [q.name for q in web if re.search(r"https?://(?!127\.0\.0\.1)", q.read_text().replace("http://www.w3.org/2000/svg", ""))]
+    # A link a person may follow (an <a> tag) loads nothing; any other address elsewhere would.
+    loads = [q.name for q in web if re.search(r"https?://(?!127\.0\.0\.1)",
+                                              re.sub(r"<a\b[^>]*>", "", q.read_text()).replace("http://www.w3.org/2000/svg", ""))]
     check(not loads, f"web/ loads nothing from elsewhere (no library, no CDN) {loads or ''}")
 
     print()

@@ -39,6 +39,8 @@ header {
   flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px;
   padding: 6px 12px; background: var(--plate); border-bottom: 1px solid var(--line);
 }
+header a.docs { color: var(--dim); text-decoration: none; margin-left: -8px; }
+header a.docs:hover, header a.docs:focus-visible { color: inherit; text-decoration: underline; }
 .links, .clock { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .clock-title { color: var(--dim); text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
 .link { padding: 1px 8px; border-radius: 9px; border: 1px solid var(--line); color: var(--dim); }
