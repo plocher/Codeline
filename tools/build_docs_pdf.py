@@ -8,9 +8,31 @@ Pipeline: pandoc (GFM -> HTML fragment per document) -> one HTML book -> headles
 -> PDF. Chromium is run twice: the first pass finds the page each chapter starts on, the second
 writes those page numbers into the contents.
 
-Requires: pandoc on PATH, and `pip install playwright pypdf` followed by `playwright install chromium`.
+Install (one time)
+-----------------
+1. pandoc (the Markdown -> HTML converter), on your PATH:
+       macOS:          brew install pandoc
+       Debian/Ubuntu:  sudo apt-get install pandoc
+       Windows:        winget install --id JohnMacFarlane.Pandoc   (or the installer from pandoc.org)
+2. The Python packages (a virtual environment is recommended):
+       python3 -m pip install playwright pypdf
+3. The headless Chromium that Playwright drives:
+       python3 -m playwright install chromium
+   (Skip this if you already have Chrome/Chromium and pass it with --chromium instead.)
 
-Usage:  python3 tools/build_docs_pdf.py [--out PATH] [--chromium PATH]
+Run
+---
+From anywhere in the repository:
+       python3 tools/build_docs_pdf.py
+This overwrites docs/pdfs/Codeline-Complete.pdf; commit it alongside the Markdown changes.
+
+Options:
+       --out PATH        write the PDF somewhere else
+       --chromium PATH   use this Chrome/Chromium executable instead of Playwright's
+                         (e.g. "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+
+Adding or reordering documents: edit PARTS below. Any Markdown file in the repo that is not listed
+there is reported as a note when the script runs and left out of the book.
 """
 from __future__ import annotations
 
